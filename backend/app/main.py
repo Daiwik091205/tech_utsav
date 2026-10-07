@@ -7,7 +7,8 @@ import asyncio
 from typing import Dict, Any, Optional
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, FileResponse, JSONResponse
+import base64
+from fastapi.responses import StreamingResponse, FileResponse, JSONResponse, Response
 from pydantic import BaseModel
 
 from .agents.vision_agent import VisionAgent
@@ -31,8 +32,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Store document cache in memory / temp storage
+# Store document cache in memory with bounded size (LRU-style eviction)
 DOCUMENTS_STORE: Dict[str, Dict[str, Any]] = {}
+MAX_STORE_CAPACITY = 50
+
+def store_document(doc_id: str, entry: Dict[str, Any]):
+    """Stores document with automatic eviction of oldest entries to prevent memory leaks."""
+    if len(DOCUMENTS_STORE) >= MAX_STORE_CAPACITY:
+        oldest_key = next(iter(DOCUMENTS_STORE))
+        del DOCUMENTS_STORE[oldest_key]
+    DOCUMENTS_STORE[doc_id] = entry
 
 # Initialize agents
 vision_agent = VisionAgent()
@@ -99,12 +108,12 @@ def load_sample(sample_id: str):
         file_bytes = f.read()
 
     doc_id = f"doc_{hashlib.md5(file_bytes).hexdigest()[:10]}"
-    DOCUMENTS_STORE[doc_id] = {
+    store_document(doc_id, {
         "doc_id": doc_id,
         "filename": filename,
         "bytes": file_bytes,
         "result": None
-    }
+    })
     return {"doc_id": doc_id, "filename": filename, "size_bytes": len(file_bytes)}
 
 @app.post("/api/upload")
@@ -112,12 +121,12 @@ async def upload_document(file: UploadFile = File(...)):
     file_bytes = await file.read()
     doc_id = f"doc_{hashlib.md5(file_bytes).hexdigest()[:10]}"
     
-    DOCUMENTS_STORE[doc_id] = {
+    store_document(doc_id, {
         "doc_id": doc_id,
         "filename": file.filename or "uploaded_document.pdf",
         "bytes": file_bytes,
         "result": None
-    }
+    })
     return {
         "doc_id": doc_id,
         "filename": file.filename,
@@ -125,7 +134,7 @@ async def upload_document(file: UploadFile = File(...)):
     }
 
 @app.get("/api/pipeline/stream/{doc_id}")
-async def stream_pipeline(doc_id: str):
+async def stream_pipeline(doc_id: str, demo_mode: bool = True):
     if doc_id not in DOCUMENTS_STORE:
         raise HTTPException(status_code=404, detail="Document not found")
 
@@ -133,61 +142,80 @@ async def stream_pipeline(doc_id: str):
     doc_bytes = doc_entry["bytes"]
     filename = doc_entry["filename"]
 
+    async def paced_sleep(delay: float):
+        """Allows toggling between paced presentation demo (0.35s) and ultra-fast turbo mode (0.01s)."""
+        if demo_mode:
+            await asyncio.sleep(delay)
+        else:
+            await asyncio.sleep(0.01)
+
     async def event_generator():
         start_time = time.time()
 
         # Step 0: Ingestion initialized
         yield f"data: {json.dumps({'event': 'init', 'agent': 'Orchestrator', 'message': f'Document {filename} ingested into air-gapped queue.', 'progress': 10})}\n\n"
-        await asyncio.sleep(0.35)
+        await paced_sleep(0.35)
 
-        # Step 1: Agent 1 - Vision & Layout Analysis
+        # Step 1: Agent 1 - Vision & Layout Analysis (Offloaded to worker thread)
         yield f"data: {json.dumps({'event': 'agent_start', 'agent': 'Layout & Vision Agent', 'phase': 'layout_parsing', 'message': 'Running PyMuPDF spatial tokenizer & reading order detector...', 'progress': 25})}\n\n"
-        await asyncio.sleep(0.4)
+        await paced_sleep(0.4)
 
-        vision_data = vision_agent.process_document(doc_bytes)
+        vision_data = await asyncio.to_thread(vision_agent.process_document, doc_bytes)
         token_count = vision_data["total_tokens"]
         box_count = len(vision_data["tokens"])
         doc_type = vision_data["doc_type"]
         page_count = vision_data["page_count"]
 
         yield f"data: {json.dumps({'event': 'agent_complete', 'agent': 'Layout & Vision Agent', 'phase': 'layout_parsing', 'message': f'Scanned {token_count} tokens across {page_count} page(s) ({box_count} spatial coordinates mapped).', 'metrics': {'tokens_scanned': token_count, 'bounding_boxes': box_count, 'doc_type': doc_type}, 'progress': 40})}\n\n"
-        await asyncio.sleep(0.35)
+        await paced_sleep(0.35)
 
         # Step 2: Parallel execution - Agent 4 (Privacy & Redaction) & Agent 2 (Schema Structuring)
         yield f"data: {json.dumps({'event': 'agent_start', 'agent': 'Privacy & Redaction Agent', 'phase': 'presidio_scanning', 'message': 'Presidio NER scanning for direct and quasi-identifiers...', 'progress': 50})}\n\n"
         yield f"data: {json.dumps({'event': 'agent_start', 'agent': 'Schema Structuring Agent', 'phase': 'schema_extraction', 'message': 'Parsing document entities into strict Pydantic models...', 'progress': 55})}\n\n"
-        await asyncio.sleep(0.5)
+        await paced_sleep(0.4)
 
-        # Agent 4 Presidio Scan
-        detected_raw_pii = privacy_agent.scan_pii(vision_data["full_text"])
-        
-        # Hard Hardware/Pixel Redaction via PyMuPDF
-        sanitized_pdf, redacted_images, verified_entities, proof = privacy_agent.apply_true_redaction(
-            doc_bytes=doc_bytes,
-            pii_list=detected_raw_pii
+        # True parallel execution using worker thread pool
+        def execute_privacy():
+            raw_pii = privacy_agent.scan_pii(vision_data["full_text"])
+            sanitized_pdf, redacted_images, verified_entities, proof = privacy_agent.apply_true_redaction(
+                doc_bytes=doc_bytes,
+                pii_list=raw_pii
+            )
+            return raw_pii, sanitized_pdf, redacted_images, verified_entities, proof
+
+        def execute_schema():
+            return schema_agent.extract_schema(vision_data["full_text"], doc_type)
+
+        (raw_pii, sanitized_pdf, redacted_images, verified_entities, proof), structured_data = await asyncio.gather(
+            asyncio.to_thread(execute_privacy),
+            asyncio.to_thread(execute_schema)
         )
 
         yield f"data: {json.dumps({'event': 'agent_complete', 'agent': 'Privacy & Redaction Agent', 'phase': 'redaction_applied', 'message': f'Redacted {len(verified_entities)} PII/PHI entities with hardware pixel burn-in (Zero text leakage verified).', 'metrics': {'pii_count': len(verified_entities), 'verified_zero_leakage': proof['verified_zero_leakage']}, 'progress': 70})}\n\n"
-        await asyncio.sleep(0.3)
+        await paced_sleep(0.3)
 
-        # Agent 2 Schema Structuring
-        structured_data = schema_agent.extract_schema(vision_data["full_text"], doc_type)
         schema_type_name = structured_data.get("schema_type", "STANDARD")
         yield f"data: {json.dumps({'event': 'agent_complete', 'agent': 'Schema Structuring Agent', 'phase': 'schema_extraction', 'message': f'Extracted type-safe JSON schema ({schema_type_name}).', 'metrics': {'schema': schema_type_name}, 'progress': 80})}\n\n"
-        await asyncio.sleep(0.3)
+        await paced_sleep(0.3)
 
-        # Step 3: Agent 3 - Compliance & Risk Agent
+        # Step 3: Agent 3 - Compliance & Risk Agent with Dynamic Bounding Box Localization
         yield f"data: {json.dumps({'event': 'agent_start', 'agent': 'Risk & Compliance Agent', 'phase': 'risk_evaluation', 'message': 'Comparing extracted clauses against corporate benchmarks...', 'progress': 85})}\n\n"
-        await asyncio.sleep(0.4)
+        await paced_sleep(0.35)
 
-        risk_findings = risk_agent.evaluate_risks(vision_data["full_text"], doc_type, len(verified_entities))
+        risk_findings = await asyncio.to_thread(
+            risk_agent.evaluate_risks,
+            vision_data["full_text"],
+            doc_type,
+            len(verified_entities),
+            doc_bytes
+        )
         high_risk_count = sum(1 for r in risk_findings if r.severity == "HIGH")
 
         yield f"data: {json.dumps({'event': 'agent_complete', 'agent': 'Risk & Compliance Agent', 'phase': 'risk_evaluation', 'message': f'Evaluated policy baseline: {len(risk_findings)} findings ({high_risk_count} High Risk).', 'metrics': {'findings_count': len(risk_findings), 'high_risk': high_risk_count}, 'progress': 92})}\n\n"
-        await asyncio.sleep(0.3)
+        await paced_sleep(0.25)
 
         # Step 4: Differential Privacy Computation & Audit Hash
-        diff_privacy = privacy_agent.compute_differential_privacy(structured_data, epsilon=0.5)
+        diff_privacy = await asyncio.to_thread(privacy_agent.compute_differential_privacy, structured_data, 0.5)
         
         # Calculate cryptographic SHA-256 audit digest
         audit_payload = {
@@ -229,6 +257,27 @@ async def stream_pipeline(doc_id: str):
         yield f"data: {json.dumps({'event': 'pipeline_finished', 'agent': 'Aggregator Gateway', 'message': f'Pipeline finished in {total_time_ms}ms. Clean PDF burned & Audit log ready.', 'progress': 100, 'result': final_result.model_dump()})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.get("/api/documents/{doc_id}/pages/{page_idx}/image")
+def get_document_page_image(doc_id: str, page_idx: int, sanitized: bool = False):
+    """Binary image serving endpoint with browser HTTP caching."""
+    if doc_id not in DOCUMENTS_STORE:
+        raise HTTPException(status_code=404, detail="Document not found")
+    entry = DOCUMENTS_STORE[doc_id]
+    result = entry.get("result")
+    if not result:
+        raise HTTPException(status_code=404, detail="Result not ready")
+    images = result.redacted_page_images if sanitized else result.original_page_images
+    if page_idx < 0 or page_idx >= len(images):
+        raise HTTPException(status_code=404, detail="Page index out of bounds")
+    data_url = images[page_idx]
+    b64_data = data_url.split(",", 1)[1] if "," in data_url else data_url
+    img_bytes = base64.b64decode(b64_data)
+    return Response(
+        content=img_bytes,
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=3600"}
+    )
 
 @app.get("/api/download/original/{doc_id}")
 def download_original(doc_id: str):

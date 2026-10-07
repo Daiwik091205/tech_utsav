@@ -27,6 +27,8 @@ class RiskFinding(BaseModel):
     risk_explanation: str
     policy_benchmark: str
     suggested_revision: str
+    bbox: List[float] = Field(default_factory=list, description="[x0, y0, x1, y1]")
+    page: int = 0
 
 class DifferentialPrivacyMetrics(BaseModel):
     k_anonymity_level: str

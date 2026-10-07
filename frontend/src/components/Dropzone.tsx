@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Shield, FileCheck, Sparkles, AlertTriangle } from 'lucide-react';
+import { Upload, Shield, FileCheck, Sparkles, AlertTriangle, Zap } from 'lucide-react';
 
 interface DropzoneProps {
   onFileSelect: (file: File) => void;
@@ -7,6 +7,8 @@ interface DropzoneProps {
   isProcessing: boolean;
   activeDocName?: string;
   activeSampleId?: string;
+  isTurboMode: boolean;
+  onToggleTurboMode: () => void;
 }
 
 export const Dropzone: React.FC<DropzoneProps> = ({
@@ -14,7 +16,9 @@ export const Dropzone: React.FC<DropzoneProps> = ({
   onSampleSelect,
   isProcessing,
   activeDocName,
-  activeSampleId
+  activeSampleId,
+  isTurboMode,
+  onToggleTurboMode
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -40,9 +44,24 @@ export const Dropzone: React.FC<DropzoneProps> = ({
           <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
           <h2 className="text-base font-bold text-white tracking-wide truncate">Multi-Agent Ingestion Gateway</h2>
         </div>
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800 shrink-0">
-          Air-Gapped
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onToggleTurboMode}
+            className={`px-2 py-0.5 text-[11px] font-mono font-semibold rounded-lg border transition-all cursor-pointer flex items-center gap-1 ${
+              isTurboMode
+                ? 'bg-amber-950/90 text-amber-300 border-amber-600 shadow-[0_0_10px_rgba(245,158,11,0.35)]'
+                : 'bg-indigo-950/80 text-indigo-300 border-indigo-700'
+            }`}
+            title="Toggle between Paced Presentation Demo and Ultra-Fast Turbo Execution"
+          >
+            <Zap className={`w-3 h-3 ${isTurboMode ? 'text-amber-400 animate-pulse' : 'text-indigo-400'}`} />
+            <span>{isTurboMode ? '⚡ Turbo (<200ms)' : '🎭 Paced (3s)'}</span>
+          </button>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800 shrink-0">
+            Air-Gapped
+          </span>
+        </div>
       </div>
 
       {/* Dedicated Demo Presets Row - Perfectly aligned within the container */}

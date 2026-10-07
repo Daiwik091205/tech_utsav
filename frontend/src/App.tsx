@@ -35,6 +35,7 @@ export function App() {
 
   // Expo Script Guide Modal
   const [showExpoGuide, setShowExpoGuide] = useState<boolean>(false);
+  const [isTurboMode, setIsTurboMode] = useState<boolean>(false);
 
   // Trigger SSE stream for a document ID
   const startPipelineStream = (docId: string, filename: string) => {
@@ -57,7 +58,7 @@ export function App() {
     setRiskFindings([]);
     setExtractedSchema({});
 
-    const eventSource = new EventSource(`/api/pipeline/stream/${docId}`);
+    const eventSource = new EventSource(`/api/pipeline/stream/${docId}?demo_mode=${!isTurboMode}`);
 
     eventSource.onmessage = (event) => {
       try {
@@ -182,15 +183,21 @@ export function App() {
           </div>
 
           {/* System Status Badges */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800 text-xs font-mono text-emerald-300">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>Zero Data Egress: Air-Gapped</span>
             </div>
 
+            {processingTimeMs > 0 && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-950/70 border border-indigo-700 text-xs font-mono text-indigo-300">
+                <span className="text-amber-400 font-bold">⚡ {processingTimeMs}ms</span>
+              </div>
+            )}
+
             <button
               onClick={() => setShowExpoGuide(true)}
-              className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-colors cursor-pointer"
             >
               <HelpCircle className="w-3.5 h-3.5 text-indigo-400" />
               <span>3-Min Expo Script</span>
@@ -210,6 +217,8 @@ export function App() {
               isProcessing={isProcessing}
               activeDocName={activeFilename}
               activeSampleId={activeSampleId}
+              isTurboMode={isTurboMode}
+              onToggleTurboMode={() => setIsTurboMode((prev) => !prev)}
             />
           </div>
           <div className="lg:col-span-7 flex flex-col">

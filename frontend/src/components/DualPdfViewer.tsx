@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, ShieldCheck, ZoomIn, ZoomOut, RotateCcw, Layers, Lock, CheckCircle, Sparkles } from 'lucide-react';
 
 interface PIIEntity {
@@ -16,6 +16,8 @@ interface RiskFinding {
   clause_title: string;
   severity: string;
   flagged_text: string;
+  bbox?: number[]; // [x0, y0, x1, y1]
+  page?: number;
 }
 
 interface DualPdfViewerProps {
@@ -34,9 +36,16 @@ export const DualPdfViewer: React.FC<DualPdfViewerProps> = ({
   originalImages,
   redactedImages,
   piiEntities,
+  riskFindings = [],
   docType,
 }) => {
-  const [currentPage] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(0);
+
+  // Reset page when new document images load
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [originalImages]);
+
   // Zoom state: baseWidth is 520px at 100%
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [showOverlays, setShowOverlays] = useState<boolean>(true);
@@ -58,6 +67,9 @@ export const DualPdfViewer: React.FC<DualPdfViewerProps> = ({
 
   // Filter PII entities for current page
   const pagePii = piiEntities.filter((p) => p.page === currentPage && p.bbox && p.bbox.length === 4);
+
+  // Filter Risk Findings for current page that have valid bounding boxes
+  const pageRiskFindings = riskFindings.filter((r) => (r.page === currentPage || r.page === undefined) && r.bbox && r.bbox.length === 4);
 
   const runVerificationSearch = (query: string) => {
     setVerifyTestQuery(query);
@@ -106,7 +118,34 @@ export const DualPdfViewer: React.FC<DualPdfViewerProps> = ({
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto flex-wrap sm:flex-nowrap">
+          {/* Multi-page Pagination Controls */}
+          {originalImages.length > 1 && (
+            <div className="flex items-center bg-slate-950 rounded-lg border border-slate-800 p-0.5 shadow-inner">
+              <button
+                type="button"
+                disabled={currentPage === 0}
+                onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                className="px-2 py-1 text-slate-400 hover:text-white disabled:opacity-30 transition-colors text-xs font-mono cursor-pointer"
+                title="Previous Page"
+              >
+                &larr; Prev
+              </button>
+              <span className="text-[11px] font-mono px-2 text-indigo-300 font-bold border-x border-slate-800">
+                Page {currentPage + 1} / {originalImages.length}
+              </span>
+              <button
+                type="button"
+                disabled={currentPage >= originalImages.length - 1}
+                onClick={() => setCurrentPage((p) => Math.min(originalImages.length - 1, p + 1))}
+                className="px-2 py-1 text-slate-400 hover:text-white disabled:opacity-30 transition-colors text-xs font-mono cursor-pointer"
+                title="Next Page"
+              >
+                Next &rarr;
+              </button>
+            </div>
+          )}
+
           {/* Toggle Overlays Button */}
           <button
             type="button"
@@ -257,40 +296,42 @@ export const DualPdfViewer: React.FC<DualPdfViewerProps> = ({
                         );
                       })}
 
-                      {/* 2. Contract Clause Highlights (If NDA Contract) */}
-                      {docType === 'nda_contract' && (
-                        <>
-                          {/* Clause 8.2: Unlimited Indemnification (Rect: 45, 335, 550, 430) */}
-                          <div
-                            className="absolute border-2 border-dashed border-rose-500 bg-rose-500/15 rounded pointer-events-auto cursor-pointer group shadow-[0_0_12px_rgba(244,63,94,0.4)]"
-                            style={{
-                              left: `${(45 / 595) * 100}%`,
-                              top: `${(335 / 842) * 100}%`,
-                              width: `${((550 - 45) / 595) * 100}%`,
-                              height: `${((430 - 335) / 842) * 100}%`,
-                            }}
-                          >
-                            <span className="absolute -top-3 left-2 px-2 py-0.5 text-[9px] font-mono font-bold bg-rose-950 text-rose-300 border border-rose-600 rounded shadow">
-                              ⚡ HIGH RISK: Clause 8.2 Unlimited Indemnification
-                            </span>
-                          </div>
+                      {/* 2. Dynamic Compliance & Risk Clause Overlays */}
+                      {pageRiskFindings.map((risk) => {
+                        const [x0, y0, x1, y1] = risk.bbox!;
+                        const left = `${(x0 / 595) * 100}%`;
+                        const top = `${(y0 / 842) * 100}%`;
+                        const width = `${((x1 - x0) / 595) * 100}%`;
+                        const height = `${((y1 - y0) / 842) * 100}%`;
+                        const isHigh = risk.severity === 'HIGH';
 
-                          {/* Clause 14.1: Jurisdiction in Zurich (Rect: 45, 450, 550, 530) */}
+                        return (
                           <div
-                            className="absolute border-2 border-dashed border-amber-500 bg-amber-500/15 rounded pointer-events-auto cursor-pointer group shadow-[0_0_12px_rgba(245,158,11,0.4)]"
-                            style={{
-                              left: `${(45 / 595) * 100}%`,
-                              top: `${(450 / 842) * 100}%`,
-                              width: `${((550 - 45) / 595) * 100}%`,
-                              height: `${((530 - 450) / 842) * 100}%`,
-                            }}
+                            key={risk.clause_id}
+                            className={`absolute border-2 border-dashed rounded pointer-events-auto cursor-pointer group transition-all ${
+                              isHigh
+                                ? 'border-rose-500 bg-rose-500/15 shadow-[0_0_12px_rgba(244,63,94,0.4)] hover:bg-rose-500/25'
+                                : 'border-amber-500 bg-amber-500/15 shadow-[0_0_12px_rgba(245,158,11,0.4)] hover:bg-amber-500/25'
+                            }`}
+                            style={{ left, top, width, height }}
                           >
-                            <span className="absolute -top-3 left-2 px-2 py-0.5 text-[9px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-600 rounded shadow">
-                              ⚠️ JURISDICTION RISK: Clause 14.1 Foreign Arbitration
+                            <span
+                              className={`absolute -top-3 left-2 px-2 py-0.5 text-[9px] font-mono font-bold rounded shadow ${
+                                isHigh
+                                  ? 'bg-rose-950 text-rose-300 border border-rose-600'
+                                  : 'bg-amber-950 text-amber-300 border border-amber-600'
+                              }`}
+                            >
+                              {isHigh ? '⚡' : '⚠️'} {risk.severity} RISK: {risk.clause_title}
                             </span>
+                            {/* Hover Tooltip */}
+                            <div className="hidden group-hover:flex flex-col absolute bottom-full left-0 mb-1 z-30 p-2.5 text-[10px] font-mono bg-slate-950/95 text-white border border-slate-700 rounded shadow-2xl max-w-xs whitespace-normal pointer-events-none">
+                              <span className="font-bold text-rose-400">{risk.clause_title}</span>
+                              <span className="text-slate-300 mt-1 line-clamp-3">"{risk.flagged_text}"</span>
+                            </div>
                           </div>
-                        </>
-                      )}
+                        );
+                      })}
                     </div>
                   )}
                 </div>

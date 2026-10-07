@@ -84,11 +84,11 @@ class VisionAgent:
 
         # Infer document type based on keywords
         combined_text = "\n".join(full_text_pages).lower()
-        if any(k in combined_text for k in ["faculty", "usn", "student", "course code", "course credit", "department of", "assignment", "obtained marks"]):
-            doc_type = "academic_assignment"
-        elif any(k in combined_text for k in ["patient", "medical", "physician", "icd-10", "diagnosis", "rx", "hospital"]):
+        if any(k in combined_text for k in ["patient", "icd-10", "cpt / code", "gross charge", "patient copay", "physician", "health information management"]):
             doc_type = "medical_billing"
-        elif any(k in combined_text for k in ["nondisclosure", "non-disclosure", "nda", "confidentiality", "indemnification", "jurisdiction", "agreement"]):
+        elif any(k in combined_text for k in ["faculty", "usn", "student", "course code", "course credit", "assignment", "obtained marks"]):
+            doc_type = "academic_assignment"
+        elif any(k in combined_text for k in ["nondisclosure", "non-disclosure", "nda", "confidentiality", "indemnification", "disclosing party", "master services agreement"]):
             doc_type = "nda_contract"
         elif any(k in combined_text for k in ["invoice", "bill to", "tax", "subtotal", "amount due"]):
             doc_type = "invoice"

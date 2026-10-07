@@ -267,11 +267,15 @@ class PrivacyAgent:
                 # Search for EXACT target text on this page
                 rects = page.search_for(txt)
                 if not rects:
-                    # If multi-word address not found as a single rect, search subparts
+                    # If multi-word address or name wrapped across lines, search chunks & tokens
                     if "," in txt:
                         subparts = [p.strip() for p in txt.split(",") if len(p.strip()) > 3]
                         for sp in subparts:
                             rects.extend(page.search_for(sp))
+                    if not rects and " " in txt:
+                        words = [w.strip() for w in re.split(r"[\s,]+", txt) if len(w.strip()) > 2 and w.lower() not in STATIC_STOP_WORDS]
+                        for w in words:
+                            rects.extend(page.search_for(w))
 
                 for r in rects:
                     # Snug padding of 1 point so it cleanly covers characters without spilling over lines
