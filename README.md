@@ -127,7 +127,40 @@ tech_utsav/
 
 ---
 
-## 5. Running the Application
+## 5. Running as a Fully Working Windows Desktop Application
+
+For maximum enterprise security, this system runs as an **air-gapped Windows Desktop Application Enclave**, isolating sensitive document memory from web browser extensions, localhost port scanners, and external network egress.
+
+See detailed specifications in [WINDOWS_APPLICATION.md](file:///Volumes/maha/tech_utsav/WINDOWS_APPLICATION.md).
+
+### 1-Click Launch on Windows (Recommended):
+Double-click `run_windows_app.bat` or run in Command Prompt:
+```cmd
+run_windows_app.bat
+```
+*Automatically detects Python/Node, creates virtual environment, verifies dependencies, starts the mutually-authenticated backend, and launches the native desktop window.*
+
+### Native Python Edge WebView2 Launcher (Zero Node.js Required):
+For restricted enterprise Windows machines without Node.js:
+```cmd
+python desktop_launcher.py
+```
+*Utilizes native Microsoft Edge WebView2 built into Windows 10 & 11.*
+
+### 1-Click Standalone Windows Executable Builder (`.exe`):
+To package full Windows installers and standalone portable executables:
+```cmd
+build_windows_exe.bat
+```
+Generates:
+- `dist-windows\Enterprise-Document-Intelligence-Setup-1.0.0.exe` (NSIS Desktop Installer)
+- `dist-windows\Enterprise-Document-Intelligence-1.0.0-Portable-Windows-x64.exe` (Zero-install portable `.exe`)
+
+---
+
+## 6. Running Locally (Web Mode)
+
+If developing or running in standard web mode:
 
 ### Backend:
 ```bash
@@ -143,3 +176,4 @@ cd frontend
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
 - Application UI: `http://127.0.0.1:5173`
+

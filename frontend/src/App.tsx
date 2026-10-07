@@ -37,6 +37,36 @@ export function App() {
   const [showExpoGuide, setShowExpoGuide] = useState<boolean>(false);
   const [isTurboMode, setIsTurboMode] = useState<boolean>(false);
 
+  // Desktop Enclave & Security States
+  const isDesktop = typeof window !== 'undefined' && !!(window as any).electronAPI?.isDesktop;
+  const [enclaveToken, setEnclaveToken] = useState<string>('');
+  const [apiBaseUrl, setApiBaseUrl] = useState<string>(
+    typeof window !== 'undefined' && window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : ''
+  );
+  const [saveNotification, setSaveNotification] = useState<{ message: string; filePath?: string } | null>(null);
+
+  // Initialize desktop enclave token and backend base URL
+  useEffect(() => {
+    if ((window as any).electronAPI) {
+      (window as any).electronAPI.getBackendUrl?.().then((url: string) => {
+        if (url) setApiBaseUrl(url);
+      });
+      (window as any).electronAPI.getEnclaveToken?.().then((token: string) => {
+        if (token) setEnclaveToken(token);
+      });
+    }
+  }, []);
+
+  // Secure API fetch helper with Enclave Token injection
+  const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
+    const url = `${apiBaseUrl}${endpoint}`;
+    const headers = new Headers(options.headers || {});
+    if (enclaveToken) {
+      headers.set('x-session-token', enclaveToken);
+    }
+    return fetch(url, { ...options, headers });
+  };
+
   // Trigger SSE stream for a document ID
   const startPipelineStream = (docId: string, filename: string) => {
     setActiveDocId(docId);
@@ -58,7 +88,9 @@ export function App() {
     setRiskFindings([]);
     setExtractedSchema({});
 
-    const eventSource = new EventSource(`/api/pipeline/stream/${docId}?demo_mode=${!isTurboMode}`);
+    const tokenParam = enclaveToken ? `&session_token=${encodeURIComponent(enclaveToken)}` : '';
+    const sseUrl = `${apiBaseUrl}/api/pipeline/stream/${docId}?demo_mode=${!isTurboMode}${tokenParam}`;
+    const eventSource = new EventSource(sseUrl);
 
     eventSource.onmessage = (event) => {
       try {
@@ -116,7 +148,7 @@ export function App() {
   const handleSampleSelect = async (sampleId: string) => {
     try {
       setActiveSampleId(sampleId);
-      const res = await fetch(`/api/samples/${sampleId}/load`);
+      const res = await apiFetch(`/api/samples/${sampleId}/load`);
       const data = await res.json();
       startPipelineStream(data.doc_id, data.filename);
     } catch (err) {
@@ -130,7 +162,7 @@ export function App() {
       setActiveSampleId('');
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch('/api/upload', {
+      const res = await apiFetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
@@ -141,22 +173,81 @@ export function App() {
     }
   };
 
-  // Download Clean Redacted PDF
-  const handleDownloadCleanPdf = () => {
+  // Download Clean Redacted PDF (Windows Native Save Dialog or Browser Download)
+  const handleDownloadCleanPdf = async () => {
     if (!activeDocId) return;
-    window.open(`/api/download/redacted/${activeDocId}`, '_blank');
+
+    if ((window as any).electronAPI?.saveFileDialog) {
+      try {
+        const res = await apiFetch(`/api/download/redacted/${activeDocId}`);
+        const blob = await res.blob();
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64data = (reader.result as string).split(',')[1];
+          const saveRes = await (window as any).electronAPI.saveFileDialog({
+            defaultFilename: `clean_redacted_${activeFilename || 'document.pdf'}`,
+            data: base64data,
+            isBase64: true,
+            filters: [
+              { name: 'PDF Documents', extensions: ['pdf'] },
+              { name: 'All Files', extensions: ['*'] }
+            ]
+          });
+          if (saveRes?.success && saveRes.filePath) {
+            setSaveNotification({
+              message: `Clean Redacted PDF saved to:`,
+              filePath: saveRes.filePath,
+            });
+            setTimeout(() => setSaveNotification(null), 8000);
+          }
+        };
+        reader.readAsDataURL(blob);
+      } catch (err) {
+        console.error('Desktop save error:', err);
+      }
+    } else {
+      const tokenParam = enclaveToken ? `?session_token=${encodeURIComponent(enclaveToken)}` : '';
+      window.open(`${apiBaseUrl}/api/download/redacted/${activeDocId}${tokenParam}`, '_blank');
+    }
   };
 
-  // Download Audit Log JSON
-  const handleDownloadAuditLog = () => {
+  // Download Audit Log JSON (Windows Native Save Dialog or Browser Download)
+  const handleDownloadAuditLog = async () => {
     if (!activeDocId) return;
-    window.open(`/api/download/audit/${activeDocId}`, '_blank');
+
+    if ((window as any).electronAPI?.saveFileDialog) {
+      try {
+        const res = await apiFetch(`/api/download/audit/${activeDocId}`);
+        const jsonText = await res.text();
+        const saveRes = await (window as any).electronAPI.saveFileDialog({
+          defaultFilename: `audit_log_${activeDocId}.json`,
+          data: jsonText,
+          isBase64: false,
+          filters: [
+            { name: 'JSON Audit Logs', extensions: ['json'] },
+            { name: 'All Files', extensions: ['*'] }
+          ]
+        });
+        if (saveRes?.success && saveRes.filePath) {
+          setSaveNotification({
+            message: `Signed Cryptographic Audit Log saved to:`,
+            filePath: saveRes.filePath,
+          });
+          setTimeout(() => setSaveNotification(null), 8000);
+        }
+      } catch (err) {
+        console.error('Desktop save audit error:', err);
+      }
+    } else {
+      const tokenParam = enclaveToken ? `?session_token=${encodeURIComponent(enclaveToken)}` : '';
+      window.open(`${apiBaseUrl}/api/download/audit/${activeDocId}${tokenParam}`, '_blank');
+    }
   };
 
   // Load Sample 1 automatically on first launch for instant booth demonstration
   useEffect(() => {
     handleSampleSelect('medical_billing');
-  }, []);
+  }, [enclaveToken]);
 
   return (
     <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col font-sans selection:bg-indigo-600 selection:text-white">
@@ -184,10 +275,18 @@ export function App() {
 
           {/* System Status Badges */}
           <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800 text-xs font-mono text-emerald-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Zero Data Egress: Air-Gapped</span>
-            </div>
+            {isDesktop ? (
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-950/80 border border-indigo-500/80 text-xs font-mono text-indigo-200 shadow-[0_0_12px_rgba(99,102,241,0.25)]">
+                <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                <span className="font-semibold">Windows Enclave: Process Isolated</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800 text-xs font-mono text-emerald-300">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Zero Data Egress: Air-Gapped</span>
+              </div>
+            )}
+
 
             {processingTimeMs > 0 && (
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-950/70 border border-indigo-700 text-xs font-mono text-indigo-300">
@@ -205,6 +304,39 @@ export function App() {
           </div>
         </div>
       </header>
+
+      {/* Windows Enclave File Save Notification Banner */}
+      {saveNotification && (
+        <div className="bg-indigo-950/95 border-b border-indigo-700/80 px-6 py-2.5 flex items-center justify-between text-xs text-indigo-100 shadow-lg animate-in fade-in duration-200">
+          <div className="flex items-center gap-2.5 truncate max-w-[80%]">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0" />
+            <span className="font-semibold text-white">{saveNotification.message}</span>
+            {saveNotification.filePath && (
+              <span className="font-mono bg-slate-900/90 px-2 py-0.5 rounded text-emerald-300 border border-slate-700 select-all truncate text-[11px]">
+                {saveNotification.filePath}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2.5 shrink-0">
+            {saveNotification.filePath && (window as any).electronAPI?.showItemInFolder && (
+              <button
+                type="button"
+                onClick={() => (window as any).electronAPI.showItemInFolder(saveNotification.filePath)}
+                className="px-2.5 py-1 text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-md transition-colors cursor-pointer shadow-sm"
+              >
+                Reveal in Windows Explorer
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setSaveNotification(null)}
+              className="text-slate-400 hover:text-white px-2 py-1 text-xs cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Workspace */}
       <main className="flex-1 max-w-[1700px] w-full mx-auto p-4 sm:p-6 flex flex-col gap-5">

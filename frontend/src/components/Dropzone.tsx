@@ -21,6 +21,27 @@ export const Dropzone: React.FC<DropzoneProps> = ({
   onToggleTurboMode
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
+  const isDesktop = typeof window !== 'undefined' && !!(window as any).electronAPI?.isDesktop;
+
+  const handleNativeOpen = async () => {
+    if ((window as any).electronAPI?.openFileDialog) {
+      try {
+        const fileData = await (window as any).electronAPI.openFileDialog();
+        if (fileData && fileData.base64 && fileData.filename) {
+          const byteCharacters = atob(fileData.base64);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const file = new File([byteArray], fileData.filename, { type: 'application/pdf' });
+          onFileSelect(file);
+        }
+      } catch (err) {
+        console.error('Failed to open file via Windows Explorer dialog:', err);
+      }
+    }
+  };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -35,6 +56,7 @@ export const Dropzone: React.FC<DropzoneProps> = ({
       onFileSelect(e.target.files[0]);
     }
   };
+
 
   return (
     <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-lg backdrop-blur-sm flex flex-col justify-between h-full">
@@ -147,6 +169,21 @@ export const Dropzone: React.FC<DropzoneProps> = ({
               {activeDocName ? (
                 <span className="text-indigo-300 font-semibold flex items-center gap-1 justify-center">
                   <FileCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Active: {activeDocName}
+                </span>
+              ) : isDesktop ? (
+                <span>
+                  Drop custom PDF or{' '}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNativeOpen();
+                    }}
+                    className="text-indigo-400 underline font-semibold hover:text-indigo-300 cursor-pointer"
+                  >
+                    browse via Windows Explorer
+                  </button>{' '}
+                  <span className="text-[10px] text-slate-400 font-mono">(Ctrl+O)</span>
                 </span>
               ) : (
                 <span>Drop custom PDF or <span className="text-indigo-400 underline">browse</span></span>

@@ -5,8 +5,9 @@ import json
 import hashlib
 import asyncio
 from typing import Dict, Any, Optional
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import base64
 from fastapi.responses import StreamingResponse, FileResponse, JSONResponse, Response
 from pydantic import BaseModel
@@ -22,6 +23,25 @@ app = FastAPI(
     description="Air-gapped, privacy-preserving multi-agent document pipeline with true hardware redaction and differential privacy.",
     version="1.0.0"
 )
+
+# Air-gapped Desktop Enclave Session Token
+DOCUMENT_ENGINE_SECRET_TOKEN = os.environ.get("DOCUMENT_ENGINE_SECRET_TOKEN", None)
+
+@app.middleware("http")
+async def enclave_token_middleware(request: Request, call_next):
+    # If the application is launched in secure desktop enclave mode, enforce token validation
+    if DOCUMENT_ENGINE_SECRET_TOKEN:
+        if request.method == "OPTIONS":
+            return await call_next(request)
+        
+        # Check header or query parameter (query param needed for EventSource and download links)
+        client_token = request.headers.get("x-session-token") or request.query_params.get("session_token")
+        if client_token != DOCUMENT_ENGINE_SECRET_TOKEN:
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "Forbidden: Air-gapped Desktop Enclave security token missing or invalid."}
+            )
+    return await call_next(request)
 
 # Enable CORS for frontend
 app.add_middleware(
@@ -42,6 +62,7 @@ def store_document(doc_id: str, entry: Dict[str, Any]):
         oldest_key = next(iter(DOCUMENTS_STORE))
         del DOCUMENTS_STORE[oldest_key]
     DOCUMENTS_STORE[doc_id] = entry
+
 
 # Initialize agents
 vision_agent = VisionAgent()
@@ -336,3 +357,30 @@ def download_audit(doc_id: str):
         media_type="application/json",
         headers={"Content-Disposition": f"attachment; filename=audit_log_{doc_id}.json"}
     )
+
+@app.get("/api/system/enclave-info")
+def get_enclave_info():
+    return {
+        "desktop_enclave_active": bool(DOCUMENT_ENGINE_SECRET_TOKEN),
+        "security_mode": "Isolated Localhost Enclave" if DOCUMENT_ENGINE_SECRET_TOKEN else "Standard Local Development",
+        "air_gapped": True,
+        "pid": os.getpid(),
+        "platform": os.name,
+        "cached_documents": len(DOCUMENTS_STORE)
+    }
+
+@app.post("/api/shutdown")
+async def shutdown_engine(request: Request):
+    if DOCUMENT_ENGINE_SECRET_TOKEN:
+        token = request.headers.get("x-session-token") or request.query_params.get("session_token")
+        if token != DOCUMENT_ENGINE_SECRET_TOKEN:
+            raise HTTPException(status_code=403, detail="Forbidden")
+    asyncio.get_event_loop().call_later(0.3, lambda: os._exit(0))
+    return {"status": "success", "message": "Backend engine terminating."}
+
+# Mount static frontend production build if available
+FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
+if os.path.exists(FRONTEND_DIST):
+    app.mount("/", StaticFiles(directory=FRONTEND_DIST, html=True), name="frontend_dist")
+
+

@@ -1,13 +1,71 @@
 {
-  "name": "frontend",
+  "name": "enterprise-document-intelligence",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "Air-Gapped Enterprise Multi-Agent Document Intelligence & True Redaction Engine Desktop Application",
+  "author": "Enterprise Systems",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "desktop": "electron electron/main.cjs",
+    "desktop:dev": "electron electron/main.cjs --dev",
+    "build:win": "npm run build && electron-builder --win --x64",
+    "build:win:portable": "npm run build && electron-builder --win portable --x64",
+    "build:win:dir": "npm run build && electron-builder --win dir --x64",
+    "build:all": "npm run build && electron-builder -mwl"
+  },
+  "build": {
+    "appId": "com.enterprise.documentintelligence",
+    "productName": "Enterprise Document Intelligence",
+    "copyright": "Copyright © 2026 Enterprise Security Enclave",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "public/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "public/icon.ico",
+      "artifactName": "${productName}-${version}-Windows-${arch}.${ext}",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Enterprise Document Intelligence",
+      "uninstallDisplayName": "Enterprise Document Intelligence"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-Portable-Windows-x64.exe"
+    }
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -21,6 +79,8 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "electron": "^44.6.0",
+    "electron-builder": "^26.15.3",
     "oxlint": "^1.81.0",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"
