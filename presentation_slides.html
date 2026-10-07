@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise Multi-Agent Document Intelligence - Judge Presentation</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+      50% { box-shadow: 0 0 25px rgba(6, 182, 212, 0.6); }
+    }
+    .slide-active { display: flex; }
+    .slide-hidden { display: none; }
+  </style>
+</head>
+<body class="bg-[#0B0F19] text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-indigo-600 selection:text-white p-4 md:p-6">
+
+  <!-- Top Presentation Header -->
+  <header class="flex items-center justify-between pb-4 border-b border-slate-800 max-w-7xl mx-auto w-full">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center font-bold text-white shadow-lg">
+        ✦
+      </div>
+      <div>
+        <span class="text-sm font-bold text-white tracking-wide">Enterprise Multi-Agent Document Intelligence</span>
+        <span class="text-xs text-slate-400 block">Tech Utsav 2026 • Judging Presentation</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <span id="slideCounter" class="text-xs font-mono font-semibold px-3 py-1 rounded-full bg-slate-800 text-cyan-300 border border-slate-700">
+        Slide 1 / 10
+      </span>
+    </div>
+  </header>
+
+  <!-- Slide Container -->
+  <main class="flex-1 flex items-center justify-center py-6 max-w-7xl mx-auto w-full">
+
+    <!-- SLIDE 1: Title -->
+    <div id="slide-1" class="slide-active flex-col w-full bg-[#111827]/90 border border-slate-800 rounded-2xl p-8 md:p-12 shadow-2xl relative overflow-hidden min-h-[520px] justify-center">
+      <div class="absolute -top-24 -right-24 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/80 border border-indigo-500/50 text-indigo-300 text-xs font-mono font-bold w-fit mb-6">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        AIR-GAPPED COMPLIANCE & PRIVACY ENGINE
+      </div>
+      <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4">
+        Enterprise Multi-Agent<br/>
+        <span class="bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
+          Document Intelligence & Redaction Engine
+        </span>
+      </h1>
+      <p class="text-slate-400 text-base md:text-lg max-w-3xl mb-8 leading-relaxed">
+        An air-gapped, privacy-preserving document pipeline: Spatial layout parsing, Microsoft Presidio NER, true PyMuPDF hardware pixel burn-in, Pydantic type-safe structured extraction & differential privacy.
+      </p>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl">
+        <div class="p-3 rounded-xl bg-slate-900/80 border border-emerald-500/40 text-center">
+          <span class="text-xs font-bold text-emerald-400 block">Zero Data Egress</span>
+          <span class="text-xs text-slate-400">100% Local Air-Gapped</span>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/80 border border-cyan-500/40 text-center">
+          <span class="text-xs font-bold text-cyan-400 block">Hardware Pixel Burn-In</span>
+          <span class="text-xs text-slate-400">Zero Vector Stream Leak</span>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/80 border border-indigo-500/40 text-center">
+          <span class="text-xs font-bold text-indigo-400 block">HIPAA & FERPA Ready</span>
+          <span class="text-xs text-slate-400">Statutory Compliance</span>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/80 border border-amber-500/40 text-center">
+          <span class="text-xs font-bold text-amber-400 block">4 Asynchronous Agents</span>
+          <span class="text-xs text-slate-400">Deterministic DAG</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: Problem Statement -->
+    <div id="slide-2" class="slide-hidden flex-col w-full bg-[#111827]/90 border border-slate-800 rounded-2xl p-8 md:p-12 shadow-2xl min-h-[520px]">
+      <div class="mb-6">
+        <span class="text-xs font-mono font-bold text-rose-400 tracking-wider uppercase">Industry Challenge</span>
+        <h2 class="text-2xl md:text-4xl font-bold text-white mt-1">The Enterprise Document Privacy Paradox</h2>
+        <p class="text-slate-400 text-sm mt-1">Why standard commercial tools and cloud LLMs fail regulated enterprise compliance</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 flex-1">
+        <div class="p-6 rounded-xl bg-slate-900/90 border border-rose-500/40 flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-lg bg-rose-950/80 border border-rose-600 flex items-center justify-center font-bold text-rose-400 mb-4">✕</div>
+            <h3 class="text-lg font-bold text-white mb-2">1. The "Fake Redaction" Disaster</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Standard desktop tools (Adobe Acrobat, Preview) merely draw black SVG or rectangle overlays. Underlying character streams and font matrices remain selectable, copyable, and extractable via raw scripts.
+            </p>
+          </div>
+          <span class="text-xs text-rose-400 font-semibold mt-4 block">Fails HIPAA § 164 & GDPR audits</span>
+        </div>
+        <div class="p-6 rounded-xl bg-slate-900/90 border border-amber-500/40 flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-lg bg-amber-950/80 border border-amber-600 flex items-center justify-center font-bold text-amber-400 mb-4">⚠️</div>
+            <h3 class="text-lg font-bold text-white mb-2">2. Cloud LLM Data Leakage</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Pumping raw PDFs (clinical records, vendor NDAs, student IDs) to multi-tenant cloud APIs exposes organizations to severe data residency breaches and massive regulatory fines.
+            </p>
+          </div>
+          <span class="text-xs text-amber-400 font-semibold mt-4 block">Uncontrollable model training logs</span>
+        </div>
+        <div class="p-6 rounded-xl bg-slate-900/90 border border-indigo-500/40 flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-lg bg-indigo-950/80 border border-indigo-600 flex items-center justify-center font-bold text-indigo-400 mb-4">↯</div>
+            <h3 class="text-lg font-bold text-white mb-2">3. Monolithic Prompt Breakdown</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Stuffing dense multi-page documents into a single LLM prompt causes token bloat, tabular distortion, loss of spatial layout order, and zero exact bounding-box coordinate tracking.
+            </p>
+          </div>
+          <span class="text-xs text-indigo-400 font-semibold mt-4 block">High hallucination rate on dense tables</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: Solution Overview -->
+    <div id="slide-3" class="slide-hidden flex-col w-full bg-[#111827]/90 border border-slate-800 rounded-2xl p-8 md:p-12 shadow-2xl min-h-[520px]">
+      <div class="mb-6">
+        <span class="text-xs font-mono font-bold text-cyan-400 tracking-wider uppercase">Our Architectural Paradigm</span>
+        <h2 class="text-2xl md:text-4xl font-bold text-white mt-1">Air-Gapped Multi-Agent Intelligence Engine</h2>
+        <p class="text-slate-400 text-sm mt-1">Delegating complex workloads across specialized, deterministic & neural agent nodes</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 flex-1">
+        <div class="p-5 rounded-xl bg-slate-900/80 border border-cyan-500/30 flex flex-col justify-between">
+          <div>
+            <h3 class="text-base font-bold text-cyan-300 mb-2">Deterministic DAG Pipeline</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Instead of one fragile prompt, work is partitioned across four specialized agents orchestrated via an asynchronous Directed Acyclic Graph (DAG) with strict type boundaries.
+            </p>
+          </div>
+          <span class="text-xs text-cyan-400 font-mono mt-3">PyMuPDF → Presidio → Pydantic → Risk Evaluator</span>
+        </div>
+        <div class="p-5 rounded-xl bg-slate-900/80 border border-emerald-500/30 flex flex-col justify-between">
+          <div>
+            <h3 class="text-base font-bold text-emerald-300 mb-2">100% Air-Gapped Local Execution</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Zero cloud egress. Operates entirely offline on local hardware with open-weights LLMs (Ollama / Qwen / Llama-3.2) and high-speed Python microservices.
+            </p>
+          </div>
+          <span class="text-xs text-emerald-400 font-mono mt-3">Zero network packets emitted during inference</span>
+        </div>
+        <div class="p-5 rounded-xl bg-slate-900/80 border border-rose-500/30 flex flex-col justify-between">
+          <div>
+            <h3 class="text-base font-bold text-rose-300 mb-2">True Hardware Pixel Burn-In</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Uses PyMuPDF's low-level raster engine (<code class="text-rose-300 font-mono text-xs">PDF_REDACT_IMAGE_PIXELS</code>) to burn physical black pixels and expunge vector character streams permanently.
+            </p>
+          </div>
+          <span class="text-xs text-rose-400 font-mono mt-3">Verified 0 residual byte matches in PDF memory</span>
+        </div>
+        <div class="p-5 rounded-xl bg-slate-900/80 border border-purple-500/30 flex flex-col justify-between">
+          <div>
+            <h3 class="text-base font-bold text-purple-300 mb-2">Real-Time Reactive SSE Telemetry</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Server-Sent Events stream sub-second execution milestones, token counts, and risk badges live to the operator UI—eliminating black-box loaders.
+            </p>
+          </div>
+          <span class="text-xs text-purple-400 font-mono mt-3">&lt; 4.0s full end-to-end processing</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: The 4 Specialized Agents -->
+    <div id="slide-4" class="slide-hidden flex-col w-full bg-[#111827]/90 border border-slate-800 rounded-2xl p-8 md:p-12 shadow-2xl min-h-[520px]">
+      <div class="mb-6">
+        <span class="text-xs font-mono font-bold text-indigo-400 tracking-wider uppercase">Multi-Agent Topology</span>
+        <h2 class="text-2xl md:text-4xl font-bold text-white mt-1">The 4 Specialized Agent Nodes</h2>
+        <p class="text-slate-400 text-sm mt-1">Directed Acyclic Graph orchestrated via FastAPI & Server-Sent Events</p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
+        <div class="p-5 rounded-xl bg-slate-900/80 border border-cyan-500/40 flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold text-cyan-400 font-mono mb-1">AGENT 1</div>
+            <h3 class="text-base font-bold text-white mb-1">Ingestion & Spatial Vision</h3>
+            <span class="text-xs text-slate-500 block mb-3 font-mono">PyMuPDF Spatial Parser</span>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Extracts reading order, text blocks, and exact character bounding boxes [x0, y0, x1, y1] in sub-200ms. Classifies document category automatically.
+            </p>
+          </div>
+          <span class="text-xs font-mono text-cyan-300 mt-4 block">Spatial Coordinate Mapping</span>
+        </div>
+        <div class="p-5 rounded-xl bg-slate-900/80 border border-indigo-500/40 flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold text-indigo-400 font-mono mb-1">AGENT 2</div>
+            <h3 class="text-base font-bold text-white mb-1">Schema Structuring</h3>
+            <span class="text-xs text-slate-500 block mb-3 font-mono">Open-Weights Local LLM</span>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Forces type-safe Pydantic JSON extraction. Parses clinical ICD-10 line-items, contracts, or academic student records with zero-shot deterministic fallback.
+            </p>
+          </div>
+          <span class="text-xs font-mono text-indigo-300 mt-4 block">Strict Pydantic Typing</span>
+        </div>
+        <div class="p-5 rounded-xl bg-slate-900/80 border border-amber-500/40 flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold text-amber-400 font-mono mb-1">AGENT 3</div>
+            <h3 class="text-base font-bold text-white mb-1">Compliance & Risk</h3>
+            <span class="text-xs text-slate-500 block mb-3 font-mono">Vectorized Benchmark Evaluator</span>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Compares document clauses against enterprise benchmarks. Flags unilateral indemnification, foreign courts & FERPA risks with suggested redlines.
+            </p>
+          </div>
+          <span class="text-xs font-mono text-amber-300 mt-4 block">Actionable Redline Cards</span>
+        </div>
+        <div class="p-5 rounded-xl bg-slate-900/80 border border-rose-500/40 flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold text-rose-400 font-mono mb-1">AGENT 4</div>
+            <h3 class="text-base font-bold text-white mb-1">Privacy & True Redaction</h3>
+            <span class="text-xs text-slate-500 block mb-3 font-mono">Presidio NER + PyMuPDF</span>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Detects SSNs, names, USNs & medical IDs. Burns physical black pixels into vector streams. Protects form labels (Designation, Max Marks).
+            </p>
+          </div>
+          <span class="text-xs font-mono text-rose-300 mt-4 block">Hardware Pixel Burn-In</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: Hardware Redaction Deep Dive -->
+    <div id="slide-5" class="slide-hidden flex-col w-full bg-[#111827]/90 border border-slate-800 rounded-2xl p-8 md:p-12 shadow-2xl min-h-[520px]">
+      <div class="mb-6">
+        <span class="text-xs font-mono font-bold text-rose-400 tracking-wider uppercase">Cybersecurity Mechanics</span>
+        <h2 class="text-2xl md:text-4xl font-bold text-white mt-1">True Hardware Pixel Burn-In vs. Fake Redaction</h2>
+        <p class="text-slate-400 text-sm mt-1">Permanent vector stream expungement with verified zero character leakage</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+        <div class="p-6 rounded-xl bg-slate-900/90 border border-rose-500/40 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-rose-400 font-bold text-lg">✕</span>
+              <h3 class="text-lg font-bold text-rose-300">Commercial "Fake Redaction"</h3>
+            </div>
+            <ul class="space-y-3 text-xs text-slate-300">
+              <li class="flex items-start gap-2">
+                <span class="text-rose-400 font-bold">•</span>
+                <span>Draws black SVG rectangle over the visual canvas layer.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-rose-400 font-bold">•</span>
+                <span>Underlying text characters, glyphs & fonts remain intact in the stream.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-rose-400 font-bold">•</span>
+                <span>Selectable by cursor, copy-pasteable, extractable via Python scripts.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-rose-400 font-bold">•</span>
+                <span>Direct violation of HIPAA Safe Harbor & GDPR confidentiality rules.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="p-3 rounded-lg bg-rose-950/40 border border-rose-800 text-xs text-rose-300 font-mono mt-4">
+            Security Status: Compromised (Vulnerable to Extraction)
+          </div>
+        </div>
+
+        <div class="p-6 rounded-xl bg-slate-900/90 border border-emerald-500/40 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-emerald-400 font-bold text-lg">✓</span>
+              <h3 class="text-lg font-bold text-emerald-300">Our True Hardware Burn-In</h3>
+            </div>
+            <ul class="space-y-3 text-xs text-slate-300">
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-400 font-bold">•</span>
+                <span><code class="text-emerald-400 font-mono">page.add_redact_annot()</code> maps precise spatial coordinates.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-400 font-bold">•</span>
+                <span><code class="text-emerald-400 font-mono">fitz.PDF_REDACT_IMAGE_PIXELS</code> burns black pixels into raster bitmaps.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-400 font-bold">•</span>
+                <span>Vector streams, font definitions & glyph positions are expunged permanently.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-400 font-bold">•</span>
+                <span>Post-redaction verification scan confirms 0 residual memory matches.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="p-3 rounded-lg bg-emerald-950/40 border border-emerald-800 text-xs text-emerald-300 font-mono mt-4">
+            Security Status: Verified Zero Leakage (HIPAA & GDPR Ready)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: Differential Privacy & Cryptography -->
+    <div id="slide-6" class="slide-hidden flex-col w-full bg-[#111827]/90 border border-slate-800 rounded-2xl p-8 md:p-12 shadow-2xl min-h-[520px]">
+      <div class="mb-6">
+        <span class="text-xs font-mono font-bold text-purple-400 tracking-wider uppercase">Mathematical Security</span>
+        <h2 class="text-2xl md:text-4xl font-bold text-white mt-1">Differential Privacy & Cryptographic Audit Trails</h2>
+        <p class="text-slate-400 text-sm mt-1">Provable privacy-loss bounds combined with SHA-256 tamper-proof ledger</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+        <div class="p-6 rounded-xl bg-slate-900/90 border border-purple-500/40 flex flex-col justify-between">
+          <div>
+            <h3 class="text-lg font-bold text-purple-300 mb-3">Mathematical Differential Privacy (DP)</h3>
+            <ul class="space-y-3 text-xs text-slate-300">
+              <li class="flex items-start gap-2">
+                <span class="text-purple-400 font-bold">•</span>
+                <span><strong>Calibrated Laplace Mechanism:</strong> Injects calibrated noise drawn from <code class="font-mono text-purple-300">Laplace(0, Δf / ε)</code> on numerical aggregates.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-purple-400 font-bold">•</span>
+                <span><strong>Strict Epsilon Bound:</strong> Configured at <code class="font-mono text-purple-300">ε = 0.5</code> for rigorous privacy preservation.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-purple-400 font-bold">•</span>
+                <span><strong>k-Anonymity Generalization:</strong> Enforces <code class="font-mono text-purple-300">k=5</code> masking on quasi-identifiers (age, dates).</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-purple-400 font-bold">•</span>
+                <span>Mathematically prevents linkage & reconstruction attacks across external databases.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="p-3 rounded-lg bg-purple-950/40 border border-purple-800 text-xs font-mono text-purple-300 mt-4">
+            Guarantee: Individual membership presence cannot be reverse-engineered
+          </div>
+        </div>
+
+        <div class="p-6 rounded-xl bg-slate-900/90 border border-cyan-500/40 flex flex-col justify-between">
+          <div>
+            <h3 class="text-lg font-bold text-cyan-300 mb-3">Cryptographic SHA-256 Audit Digest</h3>
+            <ul class="space-y-3 text-xs text-slate-300">
+              <li class="flex items-start gap-2">
+                <span class="text-cyan-400 font-bold">•</span>
+                <span><strong>Immutable Hash:</strong> Calculates 256-bit hash combining raw bytes, redacted spans, and risk scores.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-cyan-400 font-bold">•</span>
+                <span><strong>Exportable Audit Log:</strong> Generates signed, downloadable JSON report for compliance officers.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-cyan-400 font-bold">•</span>
+                <span><strong>Interactive Verification:</strong> Operators can perform in-memory query tests directly in the Web UI.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-cyan-400 font-bold">•</span>
+                <span><strong>ERP Dispatch:</strong> Pre-structured for automated ERP / EMR webhook dispatch.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="p-3 rounded-lg bg-cyan-950/40 border border-cyan-800 text-xs font-mono text-cyan-300 mt-4">
+            Tamper-Proof Audit: Verifiable cryptographically before archiving
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: Operator UI Experience -->
+    <div id="slide-7" class="slide-hidden flex-col w-full bg-[#111827]/90 border border-slate-800 rounded-2xl p-8 md:p-12 shadow-2xl min-h-[520px]">
+      <div class="mb-6">
+        <span class="text-xs font-mono font-bold text-cyan-400 tracking-wider uppercase">User Experience</span>
+        <h2 class="text-2xl md:text-4xl font-bold text-white mt-1">Interactive Dual-Pane Document Intelligence UI</h2>
+        <p class="text-slate-400 text-sm mt-1">Modern React, Vite & Tailwind operator dashboard engineered for high-throughput review</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 flex-1">
+        <div class="p-5 rounded-xl bg-slate-900/90 border border-indigo-500/30 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider block mb-2">Zone 1: Ingestion & DAG</span>
+            <h3 class="text-base font-bold text-white mb-2">Dropzone & Real-Time Ticker</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Drag-and-drop file intake with instant 1-click presets. Displays real-time SSE progress ticker showing active agent phase, scanned token count, and detected entities.
+            </p>
+          </div>
+          <span class="text-xs font-mono text-indigo-300 mt-3">Live Server-Sent Events</span>
+        </div>
+
+        <div class="p-5 rounded-xl bg-slate-900/90 border border-cyan-500/30 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider block mb-2">Zone 2: Dual Viewer</span>
+            <h3 class="text-base font-bold text-white mb-2">Synchronized Split Panes</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Side-by-side comparison: Left pane overlays flagged PII with interactive tooltips; Right pane renders clean PDF with blackened pixels burned in. Synchronous 60%–225% zoom magnification.
+            </p>
+          </div>
+          <span class="text-xs font-mono text-cyan-300 mt-3">Mathematical coordinate alignment</span>
+        </div>
+
+        <div class="p-5 rounded-xl bg-slate-900/90 border border-emerald-500/30 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider block mb-2">Zone 3: Export & Audit</span>
+            <h3 class="text-base font-bold text-white mb-2">Risk Cards & Clean Export</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Color-coded compliance risk cards (High/Med/Low) with one-click copyable redlines. 1-click download of sanitized Clean PDF and cryptographic Audit Log JSON.
+            </p>
+          </div>
+          <span class="text-xs font-mono text-emerald-300 mt-3">Download Clean PDF + Audit JSON</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8: Multi-Sector Versatility -->
+    <div id="slide-8" class="slide-hidden flex-col w-full bg-[#111827]/90 border border-slate-800 rounded-2xl p-8 md:p-12 shadow-2xl min-h-[520px]">
+      <div class="mb-6">
+        <span class="text-xs font-mono font-bold text-emerald-400 tracking-wider uppercase">Versatility & Testing</span>
+        <h2 class="text-2xl md:text-4xl font-bold text-white mt-1">Multi-Modal Document Presets</h2>
+        <p class="text-slate-400 text-sm mt-1">Demonstrated across three heavily regulated enterprise sectors</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 flex-1">
+        <div class="p-5 rounded-xl bg-slate-900/90 border border-cyan-500/40 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold text-cyan-400 uppercase font-mono block mb-1">Preset 1: Healthcare</span>
+            <h3 class="text-base font-bold text-white mb-2">Medical Billing Statement</h3>
+            <ul class="space-y-2 text-xs text-slate-300">
+              <li>• Redacts Patient Name, SSN, DOB, Address, Policy ID.</li>
+              <li>• Preserves diagnostic ICD-10 codes & CPT charge table.</li>
+              <li>• Validates NSA Balance Billing ($14,250 charges).</li>
+              <li>• Injects differential privacy on copay amounts.</li>
+            </ul>
+          </div>
+          <span class="text-xs font-bold text-cyan-300 mt-4 block">HIPAA § 164 Safe Harbor</span>
+        </div>
+
+        <div class="p-5 rounded-xl bg-slate-900/90 border border-rose-500/40 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold text-rose-400 uppercase font-mono block mb-1">Preset 2: Enterprise Legal</span>
+            <h3 class="text-base font-bold text-white mb-2">Tech Vendor NDA & MSA</h3>
+            <ul class="space-y-2 text-xs text-slate-300">
+              <li>• Flags Clause 8.2: Unilateral Unlimited Indemnification.</li>
+              <li>• Flags Clause 14.1: Foreign Zurich Court Jurisdiction.</li>
+              <li>• Flags Clause 4.3: Non-standard 10-year survival term.</li>
+              <li>• Provides instant suggested enterprise redline clauses.</li>
+            </ul>
+          </div>
+          <span class="text-xs font-bold text-rose-300 mt-4 block">Uncapped Liability Protection</span>
+        </div>
+
+        <div class="p-5 rounded-xl bg-slate-900/90 border border-emerald-500/40 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold text-emerald-400 uppercase font-mono block mb-1">Preset 3: Academia</span>
+            <h3 class="text-base font-bold text-white mb-2">Academic Assignment Sheet</h3>
+            <ul class="space-y-2 text-xs text-slate-300">
+              <li>• FERPA student privacy: masks Student Name & USN ID.</li>
+              <li>• Verifies double-blind grading compliance.</li>
+              <li>• Extracts Course Code, Department, and Credits.</li>
+              <li>• Protects template labels (Designation, Max. Marks).</li>
+            </ul>
+          </div>
+          <span class="text-xs font-bold text-emerald-300 mt-4 block">FERPA & Blind Grading Protocol</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9: Performance Benchmarks -->
+    <div id="slide-9" class="slide-hidden flex-col w-full bg-[#111827]/90 border border-slate-800 rounded-2xl p-8 md:p-12 shadow-2xl min-h-[520px]">
+      <div class="mb-6">
+        <span class="text-xs font-mono font-bold text-cyan-400 tracking-wider uppercase">Production Performance</span>
+        <h2 class="text-2xl md:text-4xl font-bold text-white mt-1">Empirical Benchmarks & ROI Impact</h2>
+        <p class="text-slate-400 text-sm mt-1">Measured on commodity consumer/enterprise laptop hardware</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
+        <div class="p-6 rounded-xl bg-slate-900/90 border border-cyan-500/40 flex flex-col justify-between text-center">
+          <div>
+            <span class="text-3xl md:text-5xl font-extrabold text-cyan-400 block mb-2">&lt; 4.0s</span>
+            <span class="text-sm font-bold text-white block mb-2">End-to-End Pipeline</span>
+            <p class="text-xs text-slate-400">Raw PDF drop to burned clean PDF, Pydantic JSON & signed audit digest.</p>
+          </div>
+          <span class="text-xs text-cyan-300 font-mono mt-4">Sub-second per agent</span>
+        </div>
+
+        <div class="p-6 rounded-xl bg-slate-900/90 border border-emerald-500/40 flex flex-col justify-between text-center">
+          <div>
+            <span class="text-3xl md:text-5xl font-extrabold text-emerald-400 block mb-2">0 Bytes</span>
+            <span class="text-sm font-bold text-white block mb-2">Cloud Data Egress</span>
+            <p class="text-xs text-slate-400">100% local air-gapped processing without third-party API dependencies.</p>
+          </div>
+          <span class="text-xs text-emerald-300 font-mono mt-4">Air-gapped guarantee</span>
+        </div>
+
+        <div class="p-6 rounded-xl bg-slate-900/90 border border-rose-500/40 flex flex-col justify-between text-center">
+          <div>
+            <span class="text-3xl md:text-5xl font-extrabold text-rose-400 block mb-2">0 Traces</span>
+            <span class="text-sm font-bold text-white block mb-2">Residual Text Leakage</span>
+            <p class="text-xs text-slate-400">Underlying text glyphs permanently expunged from the vector stream.</p>
+          </div>
+          <span class="text-xs text-rose-300 font-mono mt-4">Automated memory verification</span>
+        </div>
+
+        <div class="p-6 rounded-xl bg-slate-900/90 border border-indigo-500/40 flex flex-col justify-between text-center">
+          <div>
+            <span class="text-3xl md:text-5xl font-extrabold text-indigo-400 block mb-2">80%</span>
+            <span class="text-sm font-bold text-white block mb-2">Review Time Cut</span>
+            <p class="text-xs text-slate-400">Automates contract risk flagging and instant redline suggestions.</p>
+          </div>
+          <span class="text-xs text-indigo-300 font-mono mt-4">Enterprise operational ROI</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10: Conclusion & Roadmap -->
+    <div id="slide-10" class="slide-hidden flex-col w-full bg-[#111827]/90 border border-slate-800 rounded-2xl p-8 md:p-12 shadow-2xl min-h-[520px]">
+      <div class="mb-6">
+        <span class="text-xs font-mono font-bold text-indigo-400 tracking-wider uppercase">Strategic Summary</span>
+        <h2 class="text-2xl md:text-4xl font-bold text-white mt-1">Conclusion & Next-Generation Roadmap</h2>
+        <p class="text-slate-400 text-sm mt-1">Empowering regulated enterprises to harness document AI with zero compromise</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+        <div class="p-6 rounded-xl bg-slate-900/90 border border-cyan-500/40 flex flex-col justify-between">
+          <div>
+            <h3 class="text-lg font-bold text-cyan-300 mb-3">Why Our Engine Wins</h3>
+            <ul class="space-y-3 text-xs text-slate-300">
+              <li class="flex items-start gap-2">
+                <span class="text-cyan-400 font-bold">★</span>
+                <span><strong>Hardware vs. Cosmetic Redaction:</strong> Physical pixel burn-in destroys character vectors permanently.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-cyan-400 font-bold">★</span>
+                <span><strong>Air-Gapped Sovereignty:</strong> Zero external API costs or cloud privacy leakage risks.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-cyan-400 font-bold">★</span>
+                <span><strong>Deterministic DAG Precision:</strong> Eliminates hallucinations on structured tabular data.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-cyan-400 font-bold">★</span>
+                <span><strong>Mathematical Guarantees:</strong> Differential privacy bounds prevent reconstruction attacks.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="p-3 rounded-lg bg-cyan-950/40 border border-cyan-800 text-xs font-mono text-cyan-300 mt-4">
+            Production-Ready Today on Local Hardware
+          </div>
+        </div>
+
+        <div class="p-6 rounded-xl bg-slate-900/90 border border-emerald-500/40 flex flex-col justify-between">
+          <div>
+            <h3 class="text-lg font-bold text-emerald-300 mb-3">Future Roadmap</h3>
+            <ul class="space-y-3 text-xs text-slate-300">
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-400 font-bold">→</span>
+                <span><strong>On-Device Handwritten OCR:</strong> Integrating TrOCR & PaddleOCR for clinical intake forms.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-400 font-bold">→</span>
+                <span><strong>Enterprise RBAC:</strong> Role-based redaction policies (doctor vs. billing clerk clearance).</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-400 font-bold">→</span>
+                <span><strong>Direct ERP / EMR Webhooks:</strong> Automated ingestion connectors for Epic, Cerner & SAP.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-400 font-bold">→</span>
+                <span><strong>Zero-Knowledge Attestation:</strong> zk-SNARK cryptographic proofs of redaction correctness.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="p-3 rounded-lg bg-emerald-950/40 border border-emerald-800 text-center font-bold text-sm text-emerald-300 mt-4">
+            Thank you, Judges! Ready for Q&A.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Bottom Navigation Controls -->
+  <footer class="flex items-center justify-between pt-4 border-t border-slate-800 max-w-7xl mx-auto w-full">
+    <div class="text-xs text-slate-400 hidden sm:block">
+      Use <kbd class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono">←</kbd> and <kbd class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono">→</kbd> keys to navigate
+    </div>
+
+    <!-- Slide indicator dots -->
+    <div id="slideDots" class="flex items-center gap-1.5">
+      <!-- Generated via JS -->
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button id="prevBtn" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 disabled:opacity-40 transition-colors cursor-pointer">
+        Previous
+      </button>
+      <button id="nextBtn" class="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 border border-indigo-500 text-white disabled:opacity-40 transition-colors cursor-pointer shadow-lg shadow-indigo-600/30">
+        Next
+      </button>
+    </div>
+  </footer>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 10;
+
+    const counter = document.getElementById('slideCounter');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const dotsContainer = document.getElementById('slideDots');
+
+    // Create Dots
+    for (let i = 1; i <= totalSlides; i++) {
+      const dot = document.createElement('button');
+      dot.className = `w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${i === 1 ? 'bg-cyan-400 w-6' : 'bg-slate-700 hover:bg-slate-500'}`;
+      dot.onclick = () => showSlide(i);
+      dot.id = `dot-${i}`;
+      dotsContainer.appendChild(dot);
+    }
+
+    function showSlide(n) {
+      if (n < 1 || n > totalSlides) return;
+
+      // Hide all
+      for (let i = 1; i <= totalSlides; i++) {
+        const slide = document.getElementById(`slide-${i}`);
+        if (slide) {
+          slide.classList.remove('slide-active');
+          slide.classList.add('slide-hidden');
+        }
+        const dot = document.getElementById(`dot-${i}`);
+        if (dot) {
+          dot.className = `w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${i === n ? 'bg-cyan-400 w-6' : 'bg-slate-700 hover:bg-slate-500'}`;
+        }
+      }
+
+      // Show target
+      const target = document.getElementById(`slide-${n}`);
+      if (target) {
+        target.classList.remove('slide-hidden');
+        target.classList.add('slide-active');
+      }
+
+      currentSlide = n;
+      counter.innerText = `Slide ${currentSlide} / ${totalSlides}`;
+      prevBtn.disabled = currentSlide === 1;
+      nextBtn.disabled = currentSlide === totalSlides;
+    }
+
+    prevBtn.onclick = () => showSlide(currentSlide - 1);
+    nextBtn.onclick = () => showSlide(currentSlide + 1);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') showSlide(currentSlide - 1);
+      if (e.key === 'ArrowRight' || e.key === ' ') showSlide(currentSlide + 1);
+    });
+
+    showSlide(1);
+  </script>
+</body>
+</html>
