@@ -112,7 +112,7 @@ def get_samples():
             "id": "academic_assignment",
             "name": "Sample 3: Academic Assignment Cover Sheet",
             "filename": "sample_academic_assignment.pdf",
-            "description": "Dept. of ECE, Faculty Prof. Akshatha Bhat, Student Maha Akshay R, USN 24BBTCS352.",
+            "description": "Dept. of Computer Science, Faculty Dr. Sarah Jenkins, Student Alex Morgan, USN STU-99281.",
             "compliance_focus": "FERPA Student Privacy + Double-Blind Grading Baseline",
             "mode": "redact"
         },
@@ -173,7 +173,8 @@ async def upload_document(file: UploadFile = File(...)):
         "doc_id": doc_id,
         "filename": file.filename or "uploaded_document.pdf",
         "bytes": file_bytes,
-        "result": None
+        "result": None,
+        "unredacted_result": None
     })
     return {
         "doc_id": doc_id,
@@ -301,6 +302,8 @@ async def stream_pipeline(doc_id: str, demo_mode: bool = True):
         # Cache in memory
         doc_entry["result"] = final_result
         doc_entry["sanitized_bytes"] = sanitized_pdf
+
+        yield f"data: {json.dumps({'event': 'pipeline_finished', 'agent': 'Aggregator Gateway', 'message': f'Pipeline finished in {total_time_ms}ms. Clean PDF burned & Audit log ready.', 'progress': 100, 'result': final_result.model_dump()})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 

@@ -45,6 +45,8 @@ export default function App() {
 
   // Desktop Enclave & Security States
   const [enclaveToken, setEnclaveToken] = useState<string>('');
+  const [isDesktopApp, setIsDesktopApp] = useState<boolean>(false);
+  const [savedNotification, setSavedNotification] = useState<{ filePath: string; filename: string } | null>(null);
   const [apiBaseUrl, setApiBaseUrl] = useState<string>(
     typeof window !== 'undefined' && window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : ''
   );
@@ -52,12 +54,29 @@ export default function App() {
   // Initialize desktop enclave token and backend base URL
   useEffect(() => {
     if ((window as any).electronAPI) {
+      setIsDesktopApp(true);
       (window as any).electronAPI.getBackendUrl?.().then((url: string) => {
         if (url) setApiBaseUrl(url);
       });
       (window as any).electronAPI.getEnclaveToken?.().then((token: string) => {
         if (token) setEnclaveToken(token);
       });
+      const unsub = (window as any).electronAPI.onFileOpened?.((fileData: any) => {
+        if (fileData && fileData.base64 && fileData.filename) {
+          const byteCharacters = atob(fileData.base64);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const mime = fileData.filename.endsWith('.pdf') ? 'application/pdf' : 'image/png';
+          const file = new File([byteArray], fileData.filename, { type: mime });
+          handleFileSelect(file);
+        }
+      });
+      return () => {
+        if (typeof unsub === 'function') unsub();
+      };
     }
   }, []);
 
@@ -219,29 +238,98 @@ export default function App() {
     }
   };
 
+  // Helper for native desktop save dialog or browser download
+  const downloadDesktopOrWeb = async (
+    endpoint: string,
+    defaultFilename: string,
+    isBase64: boolean,
+    filters?: { name: string; extensions: string[] }[]
+  ) => {
+    if (!activeDocId) return;
+    const tokenParam = enclaveToken ? `?session_token=${encodeURIComponent(enclaveToken)}` : '';
+    const fullUrl = `${apiBaseUrl}${endpoint}/${activeDocId}${tokenParam}`;
+
+    if ((window as any).electronAPI?.saveFileDialog) {
+      try {
+        const res = await apiFetch(`${endpoint}/${activeDocId}${tokenParam}`);
+        if (!res.ok) throw new Error('Download failed');
+        if (isBase64) {
+          const blob = await res.blob();
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            const base64 = (reader.result as string).split(',')[1];
+            const result = await (window as any).electronAPI.saveFileDialog({
+              defaultFilename,
+              data: base64,
+              isBase64: true,
+              filters,
+            });
+            if (result?.success && result?.filePath) {
+              setSavedNotification({ filePath: result.filePath, filename: defaultFilename });
+            }
+          };
+          reader.readAsDataURL(blob);
+          return;
+        } else {
+          const text = await res.text();
+          const result = await (window as any).electronAPI.saveFileDialog({
+            defaultFilename,
+            data: text,
+            isBase64: false,
+            filters,
+          });
+          if (result?.success && result?.filePath) {
+            setSavedNotification({ filePath: result.filePath, filename: defaultFilename });
+          }
+          return;
+        }
+      } catch (err) {
+        console.warn('Native save dialog error, fallback to browser open:', err);
+      }
+    }
+    window.open(fullUrl, '_blank');
+  };
+
   // Download Handlers
-  const handleDownloadCleanPdf = async () => {
-    if (!activeDocId) return;
-    const tokenParam = enclaveToken ? `?session_token=${encodeURIComponent(enclaveToken)}` : '';
-    window.open(`${apiBaseUrl}/api/download/redacted/${activeDocId}${tokenParam}`, '_blank');
+  const handleDownloadCleanPdf = () => {
+    downloadDesktopOrWeb(
+      '/api/download/redacted',
+      `clean_redacted_${activeFilename || 'document.pdf'}`,
+      true,
+      [{ name: 'PDF Documents (*.pdf)', extensions: ['pdf'] }]
+    );
   };
 
-  const handleDownloadAuditLog = async () => {
-    if (!activeDocId) return;
-    const tokenParam = enclaveToken ? `?session_token=${encodeURIComponent(enclaveToken)}` : '';
-    window.open(`${apiBaseUrl}/api/download/audit/${activeDocId}${tokenParam}`, '_blank');
+  const handleDownloadAuditLog = () => {
+    downloadDesktopOrWeb(
+      '/api/download/audit',
+      `audit_log_${activeDocId || 'report'}.json`,
+      false,
+      [{ name: 'JSON Audit Report (*.json)', extensions: ['json'] }]
+    );
   };
 
-  const handleDownloadRestoredDocument = async () => {
-    if (!activeDocId) return;
-    const tokenParam = enclaveToken ? `?session_token=${encodeURIComponent(enclaveToken)}` : '';
-    window.open(`${apiBaseUrl}/api/download/unredacted/${activeDocId}${tokenParam}`, '_blank');
+  const handleDownloadRestoredDocument = () => {
+    const isPng = activeFilename?.toLowerCase().endsWith('.png') || activeFilename?.toLowerCase().endsWith('.jpg');
+    const ext = isPng ? 'png' : 'pdf';
+    downloadDesktopOrWeb(
+      '/api/download/unredacted',
+      `restored_unredacted_${activeFilename || `document.${ext}`}`,
+      true,
+      [
+        { name: ext === 'png' ? 'PNG Images (*.png)' : 'PDF Documents (*.pdf)', extensions: [ext] },
+        { name: 'All Files (*.*)', extensions: ['*'] }
+      ]
+    );
   };
 
-  const handleDownloadForensicDossier = async () => {
-    if (!activeDocId) return;
-    const tokenParam = enclaveToken ? `?session_token=${encodeURIComponent(enclaveToken)}` : '';
-    window.open(`${apiBaseUrl}/api/download/unredacted_dossier/${activeDocId}${tokenParam}`, '_blank');
+  const handleDownloadForensicDossier = () => {
+    downloadDesktopOrWeb(
+      '/api/download/unredacted_dossier',
+      `forensic_dossier_${activeDocId || 'report'}.json`,
+      false,
+      [{ name: 'JSON Forensic Dossier (*.json)', extensions: ['json'] }]
+    );
   };
 
   // Load Initial Sample on launch
@@ -296,6 +384,13 @@ export default function App() {
               </div>
             )}
 
+            {isDesktopApp && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-950/70 border border-sky-700 text-xs font-mono text-sky-300">
+                <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+                <span>Windows Enclave: Process Isolated</span>
+              </div>
+            )}
+
             <button
               onClick={() => setShowExpoGuide(true)}
               className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-colors cursor-pointer"
@@ -306,6 +401,30 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {/* Native Desktop Save Notification Banner */}
+      {savedNotification && (
+        <div className="bg-emerald-950/90 border-b border-emerald-700 px-6 py-2.5 flex items-center justify-between text-xs text-emerald-200">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-emerald-400">✓ File Saved to Windows System:</span>
+            <span className="font-mono text-emerald-300 truncate max-w-xl">{savedNotification.filePath}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => (window as any).electronAPI?.showItemInFolder?.(savedNotification.filePath)}
+              className="px-2.5 py-1 bg-emerald-800 hover:bg-emerald-700 text-white font-semibold rounded text-[11px] transition cursor-pointer"
+            >
+              Reveal in File Explorer
+            </button>
+            <button
+              onClick={() => setSavedNotification(null)}
+              className="p-1 hover:text-white text-emerald-400 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Workspace */}
       <main className="flex-1 max-w-[1700px] w-full mx-auto p-4 sm:p-6 flex flex-col gap-5">

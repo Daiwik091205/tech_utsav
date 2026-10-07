@@ -84,7 +84,7 @@ class RiskAgent:
         elif doc_type == "academic_assignment":
             # Academic Course Assignment risk checks
             if pii_count > 0:
-                p, bbox = self._locate_clause_bbox(doc_bytes, ["Name of the student", "USN", "Maha Akshay"], [50.0, 320.0, 545.0, 420.0])
+                p, bbox = self._locate_clause_bbox(doc_bytes, ["Name of the student", "USN", "Alex Morgan"], [50.0, 320.0, 545.0, 420.0])
                 findings.append(RiskFinding(
                     clause_id="FERPA-PII-01",
                     clause_title="FERPA Student PII Direct Identifiers Detected",

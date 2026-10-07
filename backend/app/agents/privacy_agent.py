@@ -124,7 +124,7 @@ class PrivacyAgent:
             })
 
         # --- 1. Academic & University Student Detection ---
-        # Student Name (entire name including initials e.g. "Maha Akshay R")
+        # Student Name (entire name e.g. "Alex Morgan")
         sname_match = re.search(
             r"Name\s+of\s+the\s+student[\s:\n]+([A-Za-z\s\.]+?)(?=\n\s*(?:Section|USN|Max|$))",
             full_text,
@@ -135,21 +135,23 @@ class PrivacyAgent:
             if len(s_val) > 2 and s_val.lower() not in STATIC_STOP_WORDS:
                 add_entity("STUDENT_NAME", s_val, "direct", 0.99)
 
-        # Student USN / Roll Number (e.g. "24BBTCS352" or alphanumeric student ID)
+        # Student USN / Roll Number (e.g. "STU-99281" or alphanumeric student ID)
         for m in re.finditer(r"\b\d{1,2}[A-Z]{2,6}\d{2,4}[A-Z]{0,4}\d{0,4}\b", full_text):
             candidate = m.group(0).strip()
-            # Must contain both letters and digits and be at least 7 chars (e.g. 24BBTCS352)
             if len(candidate) >= 7 and any(c.isdigit() for c in candidate) and any(c.isalpha() for c in candidate):
                 if candidate.lower() not in STATIC_STOP_WORDS:
                     add_entity("STUDENT_USN_ID", candidate, "direct", 0.99)
 
-        usn_line_match = re.search(r"USN\s*[:\n|]+\s*(?:[A-Za-z0-9]+\s*\|\s*)?([A-Za-z0-9]+)", full_text, re.IGNORECASE)
+        for m in re.finditer(r"\b(?:STU|REG|ROLL)-\d{4,8}\b", full_text, re.IGNORECASE):
+            add_entity("STUDENT_USN_ID", m.group(0).strip(), "direct", 0.99)
+
+        usn_line_match = re.search(r"USN\s*[:\n|]+\s*(?:[A-Za-z0-9]+\s*\|\s*)?([A-Za-z0-9\-]+)", full_text, re.IGNORECASE)
         if usn_line_match:
             u_val = usn_line_match.group(1).strip()
             if len(u_val) >= 4 and u_val.lower() not in STATIC_STOP_WORDS:
                 add_entity("STUDENT_USN_ID", u_val, "direct", 0.99)
 
-        # Faculty Name (e.g. "Akshatha Bhat" after Prof.)
+        # Faculty Name (e.g. "Dr. Sarah Jenkins" after Prof. or Dr.)
         fname_match = re.search(
             r"Name\s+of\s+the\s+faculty[\s:\n]+(?:Prof\.|Dr\.)?\s*([A-Za-z\s]+?)(?=\n\s*(?:Designation|$))",
             full_text,
@@ -160,10 +162,12 @@ class PrivacyAgent:
             if len(f_val) > 2 and f_val.lower() not in STATIC_STOP_WORDS:
                 add_entity("FACULTY_NAME", f_val, "direct", 0.95)
 
-        # Faculty signature block e.g. "(Akshatha Bhat)"
-        sig_match = re.search(r"\(([A-Z][a-z]+\s+[A-Z][a-z]+)\)", full_text)
+        # Faculty signature block e.g. "(Dr. Sarah Jenkins)"
+        sig_match = re.search(r"\(([A-Za-z\.\s]+)\)", full_text)
         if sig_match:
-            add_entity("FACULTY_NAME", sig_match.group(1).strip(), "direct", 0.95)
+            cand_sig = sig_match.group(1).strip()
+            if len(cand_sig) > 3 and cand_sig.lower() not in STATIC_STOP_WORDS:
+                add_entity("FACULTY_NAME", cand_sig, "direct", 0.95)
 
         # --- 2. Medical & Healthcare Identifiers ---
         # SSN
@@ -218,15 +222,17 @@ class PrivacyAgent:
                 ):
                     # For PERSON, ensure it's not a single common dictionary word or label like "Max" or "Marks"
                     if r.entity_type == "PERSON":
-                        parts = val.split()
-                        if len(parts) >= 2 or (len(parts) == 1 and val[0].isupper() and val_lower not in ["max", "marks", "title", "credit", "code", "assignment"]):
-                            add_entity("PERSON", val, "direct", round(r.score, 2))
+                        first_line = val.split("\n")[0].strip()
+                        first_line_lower = first_line.lower()
+                        parts = first_line.split()
+                        if len(first_line) > 2 and first_line_lower not in STATIC_STOP_WORDS and (len(parts) >= 2 or (len(parts) == 1 and first_line[0].isupper() and first_line_lower not in ["max", "marks", "title", "credit", "code", "assignment"])):
+                            add_entity("PERSON", first_line, "direct", round(r.score, 2))
                     elif r.entity_type in ["US_SSN", "PHONE_NUMBER", "EMAIL_ADDRESS"]:
                         add_entity(r.entity_type, val, "direct", round(r.score, 2))
         except Exception as e:
             print(f"[PrivacyAgent] Presidio analyze warning: {e}")
 
-        # Filter subsumed entities: if "Maha Akshay" is present and "Maha Akshay R" is present,
+        # Filter subsumed entities: if "Alex" is present and "Alex Morgan" is present,
         # prioritize the more complete entity so we don't produce duplicate or truncated burns.
         sorted_entities = sorted(entities, key=lambda x: len(x["text"]), reverse=True)
         final_entities = []

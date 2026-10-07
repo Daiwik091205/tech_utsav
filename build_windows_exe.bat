@@ -56,6 +56,11 @@ cd ..
 :: Step 4: Organize output into dist-windows/
 if not exist "dist-windows" mkdir dist-windows
 xcopy /Y /Q "frontend\release\*.exe" "dist-windows\" >nul 2>&1
+xcopy /Y /Q "frontend\release\*.zip" "dist-windows\" >nul 2>&1
+if exist "frontend\release\win-unpacked" (
+    if not exist "dist-windows\Enterprise-Document-Intelligence-Windows-x64" mkdir "dist-windows\Enterprise-Document-Intelligence-Windows-x64"
+    xcopy /Y /Q /E "frontend\release\win-unpacked\*" "dist-windows\Enterprise-Document-Intelligence-Windows-x64\" >nul 2>&1
+)
 
 echo.
 echo ===============================================================================

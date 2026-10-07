@@ -44,7 +44,7 @@ if exist "backend\.venv\Scripts\python.exe" (
 
 :: Verify requirements installed
 echo [*] Checking backend Python dependencies...
-%VENV_PYTHON% -c "import fastapi, pymupdf, presidio_analyzer" >nul 2>&1
+%VENV_PYTHON% -c "import fastapi, pymupdf, presidio_analyzer, cv2, PIL" >nul 2>&1
 if %errorlevel% neq 0 (
     echo [*] Installing required Python packages from backend\requirements.txt...
     %VENV_PYTHON% -m pip install --upgrade pip

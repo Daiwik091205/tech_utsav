@@ -220,9 +220,9 @@ The document lifecycle progresses through five deterministic sequential phases:
 1. **Dynamic Whitelist Extraction:** Identifies form structural markers (tokens preceding `:` or newline colons). Adds terms like `Designation`, `Max. Marks`, `Course Code` to an immutable stop-word dictionary.
 2. **Presidio & Heuristic NER Scanning:**
    * Scans text for Social Security Numbers (`\b\d{3}-\d{2}-\d{4}\b`).
-   * Scans text for University Seat Numbers (`\b\d{1,2}[A-Z]{2,6}\d{2,4}[A-Z0-9]*\b`).
-   * Extracts composite patient and student full names with trailing initials (`Maha Akshay R`).
-3. **Subsumption Filtering:** Filters substring collisions (e.g., subsumes `Maha Akshay` into `Maha Akshay R`) to prevent overlapping partial burns.
+   * Scans text for Student Registration Numbers (`\b[A-Z0-9\-]{7,15}\b`).
+   * Extracts composite patient and student full names (`Alex Morgan`).
+3. **Subsumption Filtering:** Filters substring collisions (e.g., subsumes `Alex` into `Alex Morgan`) to prevent overlapping partial burns.
 4. **Hardware Redaction Application:**
    * Registers redaction annotations via `page.add_redact_annot(rect, fill=(0, 0, 0))`.
    * Executes `page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_PIXELS)`.
@@ -350,7 +350,7 @@ To verify that the hardware pixel burn-in physically expunged the target strings
 
 ```
 [VERIFICATION AUDIT EXECUTION]
-Target PII String:         "John Doe" (Patient) / "24BBTCS352" (Student USN)
+Target PII String:         "John Doe" (Patient) / "STU-99281" (Student ID)
 Post-Redaction Search:     PyMuPDF page.get_text("text")
 Character Matches Found:   0 matches (0 bytes found)
 Vector Stream Inspection:  Font glyph operators expunged from xref table
@@ -422,13 +422,13 @@ Through the development and analysis of this project, key engineering principles
     "evaluation_status": "Sanitized for Blind Assessment"
   },
   "student_record": {
-    "student_name": "Maha Akshay R",
-    "usn_registration_id": "24BBTCS352",
-    "section": "F"
+    "student_name": "Alex Morgan",
+    "usn_registration_id": "STU-99281",
+    "section": "A"
   },
   "faculty_evaluator": {
-    "name": "Prof. Akshatha Bhat",
-    "designation": "Assistant Professor"
+    "name": "Dr. Sarah Jenkins",
+    "designation": "Associate Professor"
   }
 }
 ```

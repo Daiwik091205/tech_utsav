@@ -298,8 +298,12 @@ function createMainWindow() {
 async function handleOpenPdfDialog() {
   if (!mainWindow) return null;
   const result = await dialog.showOpenDialog(mainWindow, {
-    title: 'Select PDF Document for Intelligence & Redaction',
-    filters: [{ name: 'PDF Documents', extensions: ['pdf'] }],
+    title: 'Select Document or Image Scan for Intelligence & Redaction',
+    filters: [
+      { name: 'All Supported Formats', extensions: ['pdf', 'png', 'jpg', 'jpeg', 'webp'] },
+      { name: 'PDF Documents (*.pdf)', extensions: ['pdf'] },
+      { name: 'Photos & Image Scans (*.png, *.jpg, *.jpeg, *.webp)', extensions: ['png', 'jpg', 'jpeg', 'webp'] },
+    ],
     properties: ['openFile'],
   });
 
@@ -343,8 +347,10 @@ ipcMain.handle('dialog:save-file', async (event, params) => {
     title: 'Save Clean Redacted Artifact',
     defaultPath: defaultFilename,
     filters: filters || [
-      { name: 'PDF Documents', extensions: ['pdf'] },
-      { name: 'All Files', extensions: ['*'] },
+      { name: 'PDF Documents (*.pdf)', extensions: ['pdf'] },
+      { name: 'PNG Images (*.png)', extensions: ['png'] },
+      { name: 'JSON Audit Report (*.json)', extensions: ['json'] },
+      { name: 'All Files (*.*)', extensions: ['*'] },
     ],
   });
 

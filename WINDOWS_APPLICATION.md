@@ -92,9 +92,10 @@ Produces `dist\EnterpriseDocumentIntelligence\EnterpriseDocumentIntelligence.exe
 
 ## 5. Native Windows Desktop Features
 
-- **Explorer File Selection (`Ctrl+O`)**: Clicking "Browse via Windows Explorer" opens the native Windows file chooser filtered for `.pdf` files.
-- **Direct Save Dialog (`Ctrl+S`)**: Clicking "Download Redacted PDF" invokes the native Windows Save File dialog, allowing custom file naming and folder selection.
-- **"Reveal in Windows Explorer"**: After saving a redacted document or audit report, an in-app banner allows revealing the file directly in Windows File Explorer with 1 click.
+- **Explorer File Selection (`Ctrl+O`)**: Clicking "Browse via Windows Explorer" opens the native Windows file chooser supporting both PDF documents and scanned photo/image files (`.pdf`, `.png`, `.jpg`, `.jpeg`, `.webp`).
+- **Direct Save Dialog**: Clicking "Download Redacted PDF", "Download Restored Document", or "Download Audit Log" invokes the native Windows Save File dialog (`dialog.showSaveDialog`), allowing custom file naming and folder selection.
+- **"Reveal in Windows Explorer"**: After saving a redacted document, restored photo, or forensic dossier, an in-app banner allows revealing the file directly in Windows File Explorer with 1 click.
+- **Dual Engine Operation**: Switch between Hardware Burn-In Redaction Enclave and Forensic De-redaction Engine in a single unified interface.
 - **Enclave Process Badge**: Top status bar indicates `Windows Enclave: Process Isolated` with real-time mutual authentication heartbeat.
 - **Clean Memory Wipe on Exit**: On window closure (`Alt+F4`), memory document caches are evicted, and backend processes are terminated immediately.
 
@@ -106,3 +107,5 @@ Produces `dist\EnterpriseDocumentIntelligence\EnterpriseDocumentIntelligence.exe
 - **Chromium Sandboxing**: `sandbox: true`, `contextIsolation: true`, `nodeIntegration: false`, `webSecurity: true`.
 - **Egress Prevention**: Remote navigation denied; Content Security Policy restricted to local loopback enclave.
 - **Hardware Redaction**: Vector text stream scrubbed and true pixel burn-in applied via PyMuPDF (`fitz.PDF_REDACT_IMAGE_PIXELS`).
+- **Forensic Un-redaction**: Recovers superficial vector stream blocks and uses OpenCV contour analysis with contextual AI infilling for photo scans without data loss.
+

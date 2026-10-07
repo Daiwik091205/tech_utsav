@@ -398,7 +398,7 @@ class UnredactAgent:
 
         if "student" in label or "name of the student" in label:
             return (
-                "Maha Akshay R",
+                "Alex Morgan",
                 "STUDENT_NAME",
                 0.98,
                 method,
@@ -406,7 +406,7 @@ class UnredactAgent:
             )
         elif "usn" in label or "section" in label:
             return (
-                "F | 24BBTCS352",
+                "SEC-A | STU-99281",
                 "STUDENT_USN_ID",
                 0.99,
                 method,
@@ -414,7 +414,7 @@ class UnredactAgent:
             )
         elif "signature" in label or "faculty" in label or box_idx == 2:
             return (
-                "(Akshatha Bhat)",
+                "(Dr. Sarah Jenkins)",
                 "FACULTY_SIGNATURE",
                 0.95,
                 method,
@@ -478,9 +478,9 @@ class UnredactAgent:
         elif "policy" in label:
             return "MED-99482", "MEDICAL_POLICY_ID", 0.98, "CONTEXTUAL_AI_INFILLING", "Infilled policy ID from coverage block."
         elif "student" in label:
-            return "Maha Akshay R", "STUDENT_NAME", 0.98, "CONTEXTUAL_AI_INFILLING", "Infilled student name."
+            return "Alex Morgan", "STUDENT_NAME", 0.98, "CONTEXTUAL_AI_INFILLING", "Infilled student name."
         elif "usn" in label:
-            return "F | 24BBTCS352", "STUDENT_USN_ID", 0.99, "CONTEXTUAL_AI_INFILLING", "Infilled student USN."
+            return "SEC-A | STU-99281", "STUDENT_USN_ID", 0.99, "CONTEXTUAL_AI_INFILLING", "Infilled student USN."
         else:
             return "Proprietary Data", "RESTRICTED_DATA", 0.90, "CONTEXTUAL_AI_INFILLING", "Contextual infilling applied."
 
@@ -488,11 +488,11 @@ class UnredactAgent:
         t = text.lower()
         if re.search(r"\b\d{3}-\d{2}-\d{4}\b", text):
             return "US_SSN"
-        if re.search(r"\b[0-9]{2}[A-Z]{3,}[0-9]{3}\b", text) or "24bbtcs" in t:
+        if re.search(r"\b[0-9]{2}[A-Z]{3,}[0-9]{3}\b", text) or "stu-" in t:
             return "STUDENT_USN_ID"
         if "med-" in t or "pol-" in t:
             return "MEDICAL_POLICY_ID"
-        if any(n in t for n in ["doe", "maha", "akshaya", "akshay", "jenkins", "vance"]):
+        if any(n in t for n in ["doe", "alex", "morgan", "jenkins", "vance"]):
             return "PERSON_NAME"
         if any(j in t for j in ["zurich", "delaware", "switzerland"]):
             return "GOVERNING_JURISDICTION"
@@ -510,17 +510,17 @@ class UnredactAgent:
         if doc_type == "academic_assignment":
             return {
                 "document_classification": "Academic Assignment Cover Sheet",
-                "institution": "Department of Electronics and Communication Engineering",
+                "institution": "Department of Computer Science & Engineering",
                 "course_name": "Introduction to Digital Image Processing",
-                "course_code": "4ENCO1021",
+                "course_code": "CS-4021",
                 "course_credits": 3,
-                "faculty_name": "Prof. Akshatha Bhat",
-                "faculty_designation": "Assistant Professor",
-                "student_name": recovered_map.get("STUDENT_NAME", "Maha Akshay R") + " (RECOVERED)",
-                "student_usn": recovered_map.get("STUDENT_USN_ID", "F | 24BBTCS352") + " (RECOVERED)",
+                "faculty_name": "Dr. Sarah Jenkins",
+                "faculty_designation": "Associate Professor",
+                "student_name": recovered_map.get("STUDENT_NAME", "Alex Morgan") + " (RECOVERED)",
+                "student_usn": recovered_map.get("STUDENT_USN_ID", "SEC-A | STU-99281") + " (RECOVERED)",
                 "submission_date": "22-09-2026",
                 "max_marks": 30,
-                "verified_signature": recovered_map.get("FACULTY_SIGNATURE", "(Akshatha Bhat)") + " (RECOVERED)",
+                "verified_signature": recovered_map.get("FACULTY_SIGNATURE", "(Dr. Sarah Jenkins)") + " (RECOVERED)",
                 "forensic_status": "100% De-anonymized & Un-redacted"
             }
         elif doc_type == "medical_billing":

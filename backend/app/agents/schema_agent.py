@@ -149,21 +149,21 @@ class SchemaAgent:
             dept = f"DEPARTMENT OF {dept_match.group(1).strip()}" if dept_match else "DEPARTMENT OF ELECTRONICS AND COMMUNICATION ENGINEERING"
 
             s_name_match = re.search(r"Name\s+of\s+the\s+student[\s:\n]+([A-Za-z\s\.]+?)(?=\n\s*(?:Section|USN|Max|$))", full_text, re.IGNORECASE)
-            s_name = s_name_match.group(1).strip() if s_name_match else "Maha Akshay R"
+            s_name = s_name_match.group(1).strip() if s_name_match else "Alex Morgan"
 
-            code_match = re.search(r"Course\s+code[\s:\n]+([A-Za-z0-9]+)", full_text, re.IGNORECASE)
-            c_code = code_match.group(1).strip() if code_match else "4ENCO1021"
+            code_match = re.search(r"Course\s+code[\s:\n]+([A-Za-z0-9\-]+)", full_text, re.IGNORECASE)
+            c_code = code_match.group(1).strip() if code_match else "CS-4021"
 
-            usn_explicit = re.search(r"USN[\s:\n|]+(?:[A-Za-z0-9]+\s*\|\s*)?([A-Z0-9]{7,15})", full_text, re.IGNORECASE)
+            usn_explicit = re.search(r"USN[\s:\n|]+(?:[A-Za-z0-9]+\s*\|\s*)?([A-Z0-9\-]{7,15})", full_text, re.IGNORECASE)
             if usn_explicit and usn_explicit.group(1).upper() != c_code.upper():
                 usn = usn_explicit.group(1).strip()
             else:
-                usn_candidates = re.findall(r"\b\d{1,2}[A-Z]{2,6}\d{2,4}[A-Z0-9]*\b", full_text)
+                usn_candidates = re.findall(r"\b[A-Z0-9\-]{7,15}\b", full_text)
                 valid_usns = [u for u in usn_candidates if u.upper() != c_code.upper()]
-                usn = valid_usns[0] if valid_usns else "24BBTCS352"
+                usn = valid_usns[0] if valid_usns else "STU-99281"
 
             f_name_match = re.search(r"Name\s+of\s+the\s+faculty[\s:\n]+([A-Za-z\s\.]+?)(?=\n\s*(?:Designation|$))", full_text, re.IGNORECASE)
-            f_name = f_name_match.group(1).strip() if f_name_match else "Prof. Akshatha Bhat"
+            f_name = f_name_match.group(1).strip() if f_name_match else "Dr. Sarah Jenkins"
 
             subj_match = re.search(r"Name\s+of\s+the\s+subject[\s:\n]+([A-Za-z0-9\s]+?)(?=\n\s*(?:Number|Course|$))", full_text, re.IGNORECASE)
             subj = subj_match.group(1).strip() if subj_match else "Introduction to Digital Image Processing"

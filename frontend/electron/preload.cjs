@@ -20,4 +20,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   maximizeWindow: () => ipcRenderer.send('window:maximize'),
   closeWindow: () => ipcRenderer.send('window:close'),
   isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
+
+  // Menu Event Listeners
+  onFileOpened: (callback) => {
+    const handler = (_, data) => callback(data);
+    ipcRenderer.on('menu:file-opened', handler);
+    return () => ipcRenderer.removeListener('menu:file-opened', handler);
+  },
 });
