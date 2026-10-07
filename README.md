@@ -158,7 +158,30 @@ Generates:
 
 ---
 
-## 6. Running Locally (Web Mode)
+## 6. Running as a Native macOS Desktop Application
+
+For macOS (Apple Silicon M1/M2/M3/M4 & Intel), the engine runs as an **air-gapped macOS Desktop Application Enclave** with Apple Vision OCR acceleration and AppKit native panels.
+
+See detailed specifications in [MACOS_APPLICATION.md](file:///Volumes/maha/tech_utsav/MACOS_APPLICATION.md).
+
+### 1-Click Launch on macOS (Recommended):
+```bash
+./run_mac_app.sh
+```
+*Automatically sets up Python/Node, creates virtual environment, verifies dependencies, starts the mutually-authenticated backend, and launches the native macOS desktop window.*
+
+### 1-Click macOS Application & DMG Builder:
+```bash
+./build_mac_app.sh
+```
+Generates in `dist-mac/`:
+- `dist-mac/Enterprise Document Intelligence.app` (Native macOS Application bundle)
+- `dist-mac/Enterprise Document Intelligence-1.0.0-macOS-arm64.dmg` (Apple Disk Image with drag-and-drop installer)
+- `dist-mac/Enterprise Document Intelligence-1.0.0-macOS-arm64.zip` (Portable standalone archive)
+
+---
+
+## 7. Running Locally (Web Mode)
 
 If developing or running in standard web mode:
 

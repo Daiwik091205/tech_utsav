@@ -4,6 +4,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('electronAPI', {
   isDesktop: true,
   platform: process.platform,
+  isMac: process.platform === 'darwin',
+  isWindows: process.platform === 'win32',
 
   // Air-Gapped Mutual Authentication Token
   getEnclaveToken: () => ipcRenderer.invoke('app:get-enclave-token'),

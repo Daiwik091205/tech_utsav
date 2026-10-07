@@ -211,59 +211,85 @@ function createMainWindow() {
   });
 
   // Construct application menu
-  const menuTemplate = [
-    {
-      label: 'File',
+  const menuTemplate = [];
+
+  // macOS App Menu
+  if (process.platform === 'darwin') {
+    menuTemplate.push({
+      label: app.name,
       submenu: [
-        {
-          label: 'Open Document...',
-          accelerator: 'CmdOrCtrl+O',
-          click: async () => {
-            const fileData = await handleOpenPdfDialog();
-            if (fileData && mainWindow) {
-              mainWindow.webContents.send('menu:file-opened', fileData);
-            }
-          },
-        },
+        { role: 'about' },
         { type: 'separator' },
-        {
-          label: 'Exit Enclave',
-          accelerator: process.platform === 'win32' ? 'Alt+F4' : 'CmdOrCtrl+Q',
-          click: () => app.quit(),
-        },
-      ],
-    },
-    {
-      label: 'View',
-      submenu: [
-        { role: 'reload', accelerator: 'CmdOrCtrl+R' },
-        { role: 'forceReload', accelerator: 'CmdOrCtrl+Shift+R' },
+        { role: 'services' },
         { type: 'separator' },
-        { role: 'resetZoom', accelerator: 'CmdOrCtrl+0' },
-        { role: 'zoomIn', accelerator: 'CmdOrCtrl+Plus' },
-        { role: 'zoomOut', accelerator: 'CmdOrCtrl+-' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
         { type: 'separator' },
-        { role: 'togglefullscreen', accelerator: 'F11' },
+        { role: 'quit', accelerator: 'Cmd+Q' },
       ],
-    },
-    {
-      label: 'Security',
-      submenu: [
-        {
-          label: 'Enclave Security Status',
-          click: () => {
-            dialog.showMessageBox(mainWindow, {
-              type: 'info',
-              title: 'Air-Gapped Enclave Status',
-              message: 'Verified Isolated Air-Gapped Windows Enclave',
-              detail: `• Loopback Session Token: Active (${ENCLAVE_SESSION_TOKEN.slice(0, 8)}...)\n• Process Isolation: Active (Sandboxed Chromium)\n• Egress Protection: Strict CSP + Zero Remote Navigation\n• Redaction Engine: True Hardware Pixel Burn-In (PyMuPDF)\n• Backend Port: ${BACKEND_PORT}`,
-              buttons: ['OK'],
-            });
-          },
+    });
+  }
+
+  // File Menu
+  menuTemplate.push({
+    label: 'File',
+    submenu: [
+      {
+        label: 'Open Document...',
+        accelerator: 'CmdOrCtrl+O',
+        click: async () => {
+          const fileData = await handleOpenPdfDialog();
+          if (fileData && mainWindow) {
+            mainWindow.webContents.send('menu:file-opened', fileData);
+          }
         },
-      ],
-    },
-  ];
+      },
+      { type: 'separator' },
+      {
+        label: process.platform === 'darwin' ? 'Close Window' : 'Exit Enclave',
+        accelerator: process.platform === 'darwin' ? 'Cmd+W' : 'Alt+F4',
+        click: () => {
+          if (mainWindow) mainWindow.close();
+        },
+      },
+    ],
+  });
+
+  // View Menu
+  menuTemplate.push({
+    label: 'View',
+    submenu: [
+      { role: 'reload', accelerator: 'CmdOrCtrl+R' },
+      { role: 'forceReload', accelerator: 'CmdOrCtrl+Shift+R' },
+      { type: 'separator' },
+      { role: 'resetZoom', accelerator: 'CmdOrCtrl+0' },
+      { role: 'zoomIn', accelerator: 'CmdOrCtrl+Plus' },
+      { role: 'zoomOut', accelerator: 'CmdOrCtrl+-' },
+      { type: 'separator' },
+      { role: 'togglefullscreen', accelerator: process.platform === 'darwin' ? 'Ctrl+Cmd+F' : 'F11' },
+    ],
+  });
+
+  // Security Menu
+  menuTemplate.push({
+    label: 'Security',
+    submenu: [
+      {
+        label: 'Enclave Security Status',
+        click: () => {
+          const osName = process.platform === 'darwin' ? 'macOS' : process.platform === 'win32' ? 'Windows' : 'Linux';
+          dialog.showMessageBox(mainWindow, {
+            type: 'info',
+            title: 'Air-Gapped Enclave Status',
+            message: `Verified Isolated Air-Gapped ${osName} Enclave`,
+            detail: `• Loopback Session Token: Active (${ENCLAVE_SESSION_TOKEN.slice(0, 8)}...)\n• Process Isolation: Active (Sandboxed Chromium)\n• Egress Protection: Strict CSP + Zero Remote Navigation\n• Redaction Engine: True Hardware Pixel Burn-In (PyMuPDF)\n• Backend Port: ${BACKEND_PORT}\n• Platform: ${osName} (${process.arch})`,
+            buttons: ['OK'],
+          });
+        },
+      },
+    ],
+  });
 
   if (isDev) {
     menuTemplate.push({

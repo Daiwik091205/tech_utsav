@@ -16,6 +16,10 @@
     "build:win": "npm run build && electron-builder --win --x64",
     "build:win:portable": "npm run build && electron-builder --win portable --x64",
     "build:win:dir": "npm run build && electron-builder --win dir --x64",
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:mac:dmg": "npm run build && electron-builder --mac dmg",
+    "build:mac:zip": "npm run build && electron-builder --mac zip",
+    "build:mac:dir": "npm run build && electron-builder --mac dir",
     "build:all": "npm run build && electron-builder -mwl"
   },
   "build": {
@@ -30,6 +34,51 @@
       "electron/**/*",
       "public/**/*"
     ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "dir",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "public/icon.png",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "identity": null,
+      "artifactName": "${productName}-${version}-macOS-${arch}.${ext}"
+    },
+    "dmg": {
+      "title": "${productName} ${version}",
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
     "win": {
       "target": [
         {

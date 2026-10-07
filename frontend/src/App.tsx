@@ -387,7 +387,9 @@ export default function App() {
             {isDesktopApp && (
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-950/70 border border-sky-700 text-xs font-mono text-sky-300">
                 <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
-                <span>Windows Enclave: Process Isolated</span>
+                <span>
+                  {(window as any).electronAPI?.isMac ? 'macOS Enclave: Process Isolated' : 'Windows Enclave: Process Isolated'}
+                </span>
               </div>
             )}
 
@@ -406,7 +408,7 @@ export default function App() {
       {savedNotification && (
         <div className="bg-emerald-950/90 border-b border-emerald-700 px-6 py-2.5 flex items-center justify-between text-xs text-emerald-200">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-emerald-400">✓ File Saved to Windows System:</span>
+            <span className="font-semibold text-emerald-400">✓ File Saved Successfully:</span>
             <span className="font-mono text-emerald-300 truncate max-w-xl">{savedNotification.filePath}</span>
           </div>
           <div className="flex items-center gap-2">
@@ -414,7 +416,7 @@ export default function App() {
               onClick={() => (window as any).electronAPI?.showItemInFolder?.(savedNotification.filePath)}
               className="px-2.5 py-1 bg-emerald-800 hover:bg-emerald-700 text-white font-semibold rounded text-[11px] transition cursor-pointer"
             >
-              Reveal in File Explorer
+              {(window as any).electronAPI?.isMac ? 'Reveal in Finder' : 'Reveal in File Explorer'}
             </button>
             <button
               onClick={() => setSavedNotification(null)}
