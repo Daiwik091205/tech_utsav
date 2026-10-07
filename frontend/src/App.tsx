@@ -3,9 +3,10 @@ import { Dropzone } from './components/Dropzone';
 import { LiveStreamLogs, type AgentLogItem } from './components/LiveStreamLogs';
 import { DualPdfViewer } from './components/DualPdfViewer';
 import { AuditReport } from './components/AuditReport';
-import { Shield, HelpCircle, Terminal } from 'lucide-react';
+import { Shield, HelpCircle, Terminal, Search } from 'lucide-react';
 
-export function App() {
+export default function App() {
+  const [pipelineMode, setPipelineMode] = useState<'redact' | 'unredact'>('redact');
   const [activeDocId, setActiveDocId] = useState<string>('');
   const [activeFilename, setActiveFilename] = useState<string>('');
   const [activeSampleId, setActiveSampleId] = useState<string>('medical_billing');
@@ -33,17 +34,20 @@ export function App() {
   const [processingTimeMs, setProcessingTimeMs] = useState<number>(0);
   const [verificationProof, setVerificationProof] = useState<any>(undefined);
 
+  // Forensic Un-redact state
+  const [unredactedEntities, setUnredactedEntities] = useState<any[]>([]);
+  const [forensicSummary, setForensicSummary] = useState<string>('');
+  const [recoveryMethodsUsed, setRecoveryMethodsUsed] = useState<string[]>([]);
+
   // Expo Script Guide Modal
   const [showExpoGuide, setShowExpoGuide] = useState<boolean>(false);
   const [isTurboMode, setIsTurboMode] = useState<boolean>(false);
 
   // Desktop Enclave & Security States
-  const isDesktop = typeof window !== 'undefined' && !!(window as any).electronAPI?.isDesktop;
   const [enclaveToken, setEnclaveToken] = useState<string>('');
   const [apiBaseUrl, setApiBaseUrl] = useState<string>(
     typeof window !== 'undefined' && window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : ''
   );
-  const [saveNotification, setSaveNotification] = useState<{ message: string; filePath?: string } | null>(null);
 
   // Initialize desktop enclave token and backend base URL
   useEffect(() => {
@@ -68,13 +72,14 @@ export function App() {
   };
 
   // Trigger SSE stream for a document ID
-  const startPipelineStream = (docId: string, filename: string) => {
+  const startPipelineStream = (docId: string, filename: string, modeOverride?: 'redact' | 'unredact') => {
+    const mode = modeOverride || pipelineMode;
     setActiveDocId(docId);
     setActiveFilename(filename);
     setIsProcessing(true);
     setProgress(5);
     setLogs([]);
-    setCurrentAgent('Orchestrator Ingestion Gateway');
+    setCurrentAgent(mode === 'unredact' ? 'Forensic De-Redaction Gateway' : 'Orchestrator Ingestion Gateway');
 
     // Reset old metrics
     setTokensCount(0);
@@ -87,9 +92,13 @@ export function App() {
     setPiiEntities([]);
     setRiskFindings([]);
     setExtractedSchema({});
+    setUnredactedEntities([]);
+    setForensicSummary('');
+    setRecoveryMethodsUsed([]);
 
     const tokenParam = enclaveToken ? `&session_token=${encodeURIComponent(enclaveToken)}` : '';
-    const sseUrl = `${apiBaseUrl}/api/pipeline/stream/${docId}?demo_mode=${!isTurboMode}${tokenParam}`;
+    const endpoint = mode === 'unredact' ? '/api/unredact/stream' : '/api/pipeline/stream';
+    const sseUrl = `${apiBaseUrl}${endpoint}/${docId}?demo_mode=${!isTurboMode}${tokenParam}`;
     const eventSource = new EventSource(sseUrl);
 
     eventSource.onmessage = (event) => {
@@ -114,9 +123,26 @@ export function App() {
           if (data.metrics.high_risk !== undefined) setHighRiskCount(data.metrics.high_risk);
           if (data.metrics.schema) setSchemaType(data.metrics.schema);
           if (data.metrics.doc_type) setDocType(data.metrics.doc_type);
+          if (data.metrics.redactions_detected !== undefined) setBoxesCount(data.metrics.redactions_detected);
+          if (data.metrics.recovered_entities !== undefined) setPiiCount(data.metrics.recovered_entities);
         }
 
-        // Pipeline completed
+        // UNREDACT Pipeline completed
+        if (data.event === 'pipeline_finished' && data.unredact_result) {
+          const unred = data.unredact_result;
+          setOriginalImages(unred.original_page_images || []);
+          setRedactedImages(unred.unredacted_page_images || []);
+          setUnredactedEntities(unred.unredacted_entities || []);
+          setExtractedSchema(unred.extracted_info || {});
+          setForensicSummary(unred.forensic_summary || '');
+          setRecoveryMethodsUsed(unred.recovery_methods_used || []);
+          setProcessingTimeMs(unred.processing_time_ms);
+          setDocType(unred.doc_type);
+          setIsProcessing(false);
+          eventSource.close();
+        }
+
+        // REDACT Pipeline completed
         if (data.event === 'pipeline_finished' && data.result) {
           const res = data.result;
           setOriginalImages(res.original_page_images || []);
@@ -148,9 +174,19 @@ export function App() {
   const handleSampleSelect = async (sampleId: string) => {
     try {
       setActiveSampleId(sampleId);
+      // Auto-detect mode based on sample
+      let mode = pipelineMode;
+      if (sampleId === 'redacted_photo' || sampleId === 'fake_redacted_medical') {
+        mode = 'unredact';
+        setPipelineMode('unredact');
+      } else if (sampleId === 'medical_billing' || sampleId === 'tech_nda' || sampleId === 'academic_assignment') {
+        mode = 'redact';
+        setPipelineMode('redact');
+      }
+
       const res = await apiFetch(`/api/samples/${sampleId}/load`);
       const data = await res.json();
-      startPipelineStream(data.doc_id, data.filename);
+      startPipelineStream(data.doc_id, data.filename, mode);
     } catch (err) {
       console.error('Failed to load sample:', err);
     }
@@ -173,78 +209,42 @@ export function App() {
     }
   };
 
-  // Download Clean Redacted PDF (Windows Native Save Dialog or Browser Download)
+  // Mode Toggle Handler
+  const handleToggleMode = (newMode: 'redact' | 'unredact') => {
+    setPipelineMode(newMode);
+    if (newMode === 'unredact') {
+      handleSampleSelect('redacted_photo');
+    } else {
+      handleSampleSelect('medical_billing');
+    }
+  };
+
+  // Download Handlers
   const handleDownloadCleanPdf = async () => {
     if (!activeDocId) return;
-
-    if ((window as any).electronAPI?.saveFileDialog) {
-      try {
-        const res = await apiFetch(`/api/download/redacted/${activeDocId}`);
-        const blob = await res.blob();
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          const base64data = (reader.result as string).split(',')[1];
-          const saveRes = await (window as any).electronAPI.saveFileDialog({
-            defaultFilename: `clean_redacted_${activeFilename || 'document.pdf'}`,
-            data: base64data,
-            isBase64: true,
-            filters: [
-              { name: 'PDF Documents', extensions: ['pdf'] },
-              { name: 'All Files', extensions: ['*'] }
-            ]
-          });
-          if (saveRes?.success && saveRes.filePath) {
-            setSaveNotification({
-              message: `Clean Redacted PDF saved to:`,
-              filePath: saveRes.filePath,
-            });
-            setTimeout(() => setSaveNotification(null), 8000);
-          }
-        };
-        reader.readAsDataURL(blob);
-      } catch (err) {
-        console.error('Desktop save error:', err);
-      }
-    } else {
-      const tokenParam = enclaveToken ? `?session_token=${encodeURIComponent(enclaveToken)}` : '';
-      window.open(`${apiBaseUrl}/api/download/redacted/${activeDocId}${tokenParam}`, '_blank');
-    }
+    const tokenParam = enclaveToken ? `?session_token=${encodeURIComponent(enclaveToken)}` : '';
+    window.open(`${apiBaseUrl}/api/download/redacted/${activeDocId}${tokenParam}`, '_blank');
   };
 
-  // Download Audit Log JSON (Windows Native Save Dialog or Browser Download)
   const handleDownloadAuditLog = async () => {
     if (!activeDocId) return;
-
-    if ((window as any).electronAPI?.saveFileDialog) {
-      try {
-        const res = await apiFetch(`/api/download/audit/${activeDocId}`);
-        const jsonText = await res.text();
-        const saveRes = await (window as any).electronAPI.saveFileDialog({
-          defaultFilename: `audit_log_${activeDocId}.json`,
-          data: jsonText,
-          isBase64: false,
-          filters: [
-            { name: 'JSON Audit Logs', extensions: ['json'] },
-            { name: 'All Files', extensions: ['*'] }
-          ]
-        });
-        if (saveRes?.success && saveRes.filePath) {
-          setSaveNotification({
-            message: `Signed Cryptographic Audit Log saved to:`,
-            filePath: saveRes.filePath,
-          });
-          setTimeout(() => setSaveNotification(null), 8000);
-        }
-      } catch (err) {
-        console.error('Desktop save audit error:', err);
-      }
-    } else {
-      const tokenParam = enclaveToken ? `?session_token=${encodeURIComponent(enclaveToken)}` : '';
-      window.open(`${apiBaseUrl}/api/download/audit/${activeDocId}${tokenParam}`, '_blank');
-    }
+    const tokenParam = enclaveToken ? `?session_token=${encodeURIComponent(enclaveToken)}` : '';
+    window.open(`${apiBaseUrl}/api/download/audit/${activeDocId}${tokenParam}`, '_blank');
   };
 
-  // Load Sample 1 automatically on first launch for instant booth demonstration
+  const handleDownloadRestoredDocument = async () => {
+    if (!activeDocId) return;
+    const tokenParam = enclaveToken ? `?session_token=${encodeURIComponent(enclaveToken)}` : '';
+    window.open(`${apiBaseUrl}/api/download/unredacted/${activeDocId}${tokenParam}`, '_blank');
+  };
+
+  const handleDownloadForensicDossier = async () => {
+    if (!activeDocId) return;
+    const tokenParam = enclaveToken ? `?session_token=${encodeURIComponent(enclaveToken)}` : '';
+    window.open(`${apiBaseUrl}/api/download/unredacted_dossier/${activeDocId}${tokenParam}`, '_blank');
+  };
+
+  // Load Initial Sample on launch
   useEffect(() => {
     handleSampleSelect('medical_billing');
   }, [enclaveToken]);
@@ -255,38 +255,40 @@ export function App() {
       <header className="border-b border-slate-800 bg-[#0d1322]/90 backdrop-blur-md sticky top-0 z-40 px-6 py-3.5">
         <div className="max-w-[1700px] mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-indigo-600/30">
-              <Shield className="w-5 h-5 text-white" />
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-lg transition-all ${
+              pipelineMode === 'unredact'
+                ? 'bg-gradient-to-tr from-cyan-600 to-emerald-500 shadow-cyan-600/30'
+                : 'bg-gradient-to-tr from-indigo-600 to-cyan-500 shadow-indigo-600/30'
+            }`}>
+              {pipelineMode === 'unredact' ? <Search className="w-5 h-5 text-white" /> : <Shield className="w-5 h-5 text-white" />}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-base font-bold text-white tracking-wide">
-                  Enterprise Multi-Agent Document Intelligence
+                  Enterprise Multi-Agent Document Intelligence & Redaction Engine
                 </h1>
-                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-700">
-                  v1.0 AIR-GAPPED
+                <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border ${
+                  pipelineMode === 'unredact'
+                    ? 'bg-cyan-950 text-cyan-300 border-cyan-700'
+                    : 'bg-indigo-950 text-indigo-300 border-indigo-700'
+                }`}>
+                  {pipelineMode === 'unredact' ? 'DE-REDACTION FORENSICS' : 'HARDWARE BURN-IN'}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
-                Deterministic DAG Pipeline • Microsoft Presidio NER • PyMuPDF Hardware Burn-In • Differential Privacy
+                {pipelineMode === 'unredact'
+                  ? 'Optical Contour Localization • Vector Decoupling • Native Vision OCR • Contextual AI Semantic Infilling'
+                  : 'Deterministic DAG Pipeline • Microsoft Presidio NER • True PyMuPDF Pixel Burn-In • Differential Privacy'}
               </p>
             </div>
           </div>
 
           {/* System Status Badges */}
           <div className="flex items-center gap-2.5">
-            {isDesktop ? (
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-950/80 border border-indigo-500/80 text-xs font-mono text-indigo-200 shadow-[0_0_12px_rgba(99,102,241,0.25)]">
-                <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                <span className="font-semibold">Windows Enclave: Process Isolated</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800 text-xs font-mono text-emerald-300">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Zero Data Egress: Air-Gapped</span>
-              </div>
-            )}
-
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800 text-xs font-mono text-emerald-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Zero Data Egress: Air-Gapped</span>
+            </div>
 
             {processingTimeMs > 0 && (
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-950/70 border border-indigo-700 text-xs font-mono text-indigo-300">
@@ -305,42 +307,9 @@ export function App() {
         </div>
       </header>
 
-      {/* Windows Enclave File Save Notification Banner */}
-      {saveNotification && (
-        <div className="bg-indigo-950/95 border-b border-indigo-700/80 px-6 py-2.5 flex items-center justify-between text-xs text-indigo-100 shadow-lg animate-in fade-in duration-200">
-          <div className="flex items-center gap-2.5 truncate max-w-[80%]">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0" />
-            <span className="font-semibold text-white">{saveNotification.message}</span>
-            {saveNotification.filePath && (
-              <span className="font-mono bg-slate-900/90 px-2 py-0.5 rounded text-emerald-300 border border-slate-700 select-all truncate text-[11px]">
-                {saveNotification.filePath}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2.5 shrink-0">
-            {saveNotification.filePath && (window as any).electronAPI?.showItemInFolder && (
-              <button
-                type="button"
-                onClick={() => (window as any).electronAPI.showItemInFolder(saveNotification.filePath)}
-                className="px-2.5 py-1 text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-md transition-colors cursor-pointer shadow-sm"
-              >
-                Reveal in Windows Explorer
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setSaveNotification(null)}
-              className="text-slate-400 hover:text-white px-2 py-1 text-xs cursor-pointer"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Main Workspace */}
       <main className="flex-1 max-w-[1700px] w-full mx-auto p-4 sm:p-6 flex flex-col gap-5">
-        {/* Zone 1: Dropzone & Timeline (Top / Left) */}
+        {/* Zone 1: Dropzone & Timeline */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           <div className="lg:col-span-5 flex flex-col">
             <Dropzone
@@ -351,6 +320,8 @@ export function App() {
               activeSampleId={activeSampleId}
               isTurboMode={isTurboMode}
               onToggleTurboMode={() => setIsTurboMode((prev) => !prev)}
+              pipelineMode={pipelineMode}
+              onToggleMode={handleToggleMode}
             />
           </div>
           <div className="lg:col-span-7 flex flex-col">
@@ -368,9 +339,9 @@ export function App() {
           </div>
         </section>
 
-        {/* Zone 2 & 3: Dual-Pane Viewer (Center) & Structured Export Panel (Right) */}
+        {/* Zone 2 & 3: Dual-Pane Viewer & Structured Export Panel */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 min-h-[640px]">
-          {/* Dual-Pane Document Viewer (Center - 7 cols) */}
+          {/* Dual-Pane Document Viewer */}
           <div className="lg:col-span-7 flex flex-col">
             <DualPdfViewer
               originalImages={originalImages}
@@ -379,10 +350,12 @@ export function App() {
               riskFindings={riskFindings}
               docType={docType}
               verificationProof={verificationProof}
+              isUnredactMode={pipelineMode === 'unredact'}
+              unredactedEntities={unredactedEntities}
             />
           </div>
 
-          {/* Structured Export Panel (Right - 5 cols) */}
+          {/* Structured Export Panel */}
           <div className="lg:col-span-5 flex flex-col">
             <AuditReport
               docId={activeDocId}
@@ -393,6 +366,12 @@ export function App() {
               processingTimeMs={processingTimeMs}
               onDownloadCleanPdf={handleDownloadCleanPdf}
               onDownloadAuditLog={handleDownloadAuditLog}
+              isUnredactMode={pipelineMode === 'unredact'}
+              unredactedEntities={unredactedEntities}
+              forensicSummary={forensicSummary}
+              recoveryMethodsUsed={recoveryMethodsUsed}
+              onDownloadRestoredDocument={handleDownloadRestoredDocument}
+              onDownloadForensicDossier={handleDownloadForensicDossier}
             />
           </div>
         </section>
@@ -400,7 +379,7 @@ export function App() {
 
       {/* Footer */}
       <footer className="border-t border-slate-800/80 bg-[#0a0e18] px-6 py-2.5 text-center text-xs text-slate-500">
-        Enterprise Document Intelligence Engine • Hardware Redaction • Presidio NER • Ollama Zero-Shot • Local microservices architecture
+        Enterprise Document Intelligence Engine • Hardware Redaction • Forensic Un-Redaction • Presidio NER • OpenCV Optical Infilling • Air-gapped
       </footer>
 
       {/* 3-Minute Expo Demo Script Modal */}
@@ -414,7 +393,7 @@ export function App() {
               </div>
               <button
                 onClick={() => setShowExpoGuide(false)}
-                className="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:text-white"
+                className="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:text-white cursor-pointer"
               >
                 Close
               </button>
@@ -423,50 +402,22 @@ export function App() {
             <div className="mt-4 space-y-4 text-xs text-slate-300 leading-relaxed font-sans">
               <div className="p-3 rounded-lg bg-indigo-950/40 border border-indigo-800/60">
                 <span className="font-bold text-indigo-300 uppercase tracking-wide block mb-1">
-                  [0:00 - 0:45] The Hook & File Drop
+                  1. Privacy & Hard Redaction Mode
                 </span>
                 <p>
-                  "Enterprises handle millions of sensitive documents, but standard cloud LLMs leak PII, and Adobe redaction tools fail to strip underlying raw metadata. Watch what happens when I drop this raw medical bill onto our local multi-agent engine."
+                  "Demonstrates irreversible compliance redaction: Microsoft Presidio detects PII, and PyMuPDF burns out pixels and scrubs the vector stream so data can never be leaked."
                 </p>
-                <div className="mt-1 text-[11px] text-indigo-400 italic">
-                  ↳ Action: Click "Sample 1: Medical Bill" or "Sample 2: Tech NDA" to trigger the live SSE stream.
-                </div>
               </div>
 
               <div className="p-3 rounded-lg bg-cyan-950/40 border border-cyan-800/60">
                 <span className="font-bold text-cyan-300 uppercase tracking-wide block mb-1">
-                  [0:45 - 1:45] Live Multi-Agent Execution
+                  2. Forensic De-Redaction & Recovery Mode (NEW!)
                 </span>
                 <p>
-                  "Look at the agent execution ticker in the sidebar:
-                  <br/>• Agent 1 mapped every bounding box on the page in 200 milliseconds.
-                  <br/>• Agent 4 (Presidio + PyMuPDF) caught the SSN and patient name, burning the pixels away permanently.
-                  <br/>• Agent 2 & 3 simultaneously extracted the tabular line items and tested them against compliance baselines."
+                  "Switch to Forensic Un-Redact and select Sample 4 (Redacted Photo) or Sample 5 (Redacted PDF).
+                  <br/>• For photos/scans: OpenCV detects physical black marker bars, Apple Vision OCR extracts surrounding layout, and contextual AI infills the hidden names, USN, and signatures!
+                  <br/>• For PDFs: Decouples vector streams to catch cosmetic 'fake' black rectangle redactions, extracting hidden text underneath with 100% precision."
                 </p>
-              </div>
-
-              <div className="p-3 rounded-lg bg-rose-950/40 border border-rose-800/60">
-                <span className="font-bold text-rose-300 uppercase tracking-wide block mb-1">
-                  [1:45 - 2:30] Proof of Security & Compliance Verification
-                </span>
-                <p>
-                  "Notice the right pane: you cannot select or copy the redacted text—it is completely expunged from the vector stream. In the right panel, our compliance engine flagged Clause 8.2: 'Unlimited Liability' marked as HIGH RISK with an immediate suggested revision."
-                </p>
-                <div className="mt-1 text-[11px] text-rose-400 italic">
-                  ↳ Action: Click "Verify Zero-Leakage" in the viewer to demonstrate character expungement.
-                </div>
-              </div>
-
-              <div className="p-3 rounded-lg bg-emerald-950/40 border border-emerald-800/60">
-                <span className="font-bold text-emerald-300 uppercase tracking-wide block mb-1">
-                  [2:30 - 3:00] Business Impact & Extensibility
-                </span>
-                <p>
-                  "Everything you just saw ran 100% locally on this machine using open-weights models and Python micro-services. Zero data egress, HIPAA/GDPR ready out-of-the-box, with structured audit JSON ready for ERP integration."
-                </p>
-                <div className="mt-1 text-[11px] text-emerald-400 italic">
-                  ↳ Action: Click "Download Clean PDF" and "Download Audit Log" to show ERP-ready exports.
-                </div>
               </div>
             </div>
           </div>
@@ -475,5 +426,3 @@ export function App() {
     </div>
   );
 }
-
-export default App;

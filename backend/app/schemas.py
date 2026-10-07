@@ -66,3 +66,29 @@ class PipelineResult(BaseModel):
     original_page_images: List[str] # base64 data URLs
     redacted_page_images: List[str] # base64 data URLs
     text_erased_proof: Dict[str, Any]
+
+class UnredactedEntity(BaseModel):
+    id: str
+    entity_type: str
+    recovered_text: str
+    confidence: float
+    bbox: List[float] = Field(default_factory=list, description="[x0, y0, x1, y1]")
+    page: int = 0
+    method: str  # VECTOR_STREAM_DECOUPLING, PHOTOMETRIC_CONTRAST_RECOVERY, CONTEXTUAL_AI_INFILLING
+    preceding_context: Optional[str] = None
+    risk_assessment: Optional[str] = None
+
+class UnredactResult(BaseModel):
+    doc_id: str
+    filename: str
+    doc_type: str
+    is_image_input: bool = False
+    page_count: int
+    redactions_detected: int
+    unredacted_entities: List[UnredactedEntity]
+    extracted_info: Dict[str, Any]
+    original_page_images: List[str]  # base64 data URLs
+    unredacted_page_images: List[str]  # base64 data URLs
+    processing_time_ms: float
+    recovery_methods_used: List[str]
+    forensic_summary: str

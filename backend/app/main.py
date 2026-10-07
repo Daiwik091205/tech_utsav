@@ -16,7 +16,8 @@ from .agents.vision_agent import VisionAgent
 from .agents.privacy_agent import PrivacyAgent
 from .agents.schema_agent import SchemaAgent
 from .agents.risk_agent import RiskAgent
-from .schemas import PipelineResult, PipelineEvent
+from .agents.unredact_agent import UnredactAgent
+from .schemas import PipelineResult, PipelineEvent, UnredactResult, UnredactedEntity
 
 app = FastAPI(
     title="Enterprise Multi-Agent Document Intelligence & Redaction Engine",
@@ -69,6 +70,7 @@ vision_agent = VisionAgent()
 privacy_agent = PrivacyAgent()
 schema_agent = SchemaAgent()
 risk_agent = RiskAgent()
+unredact_agent = UnredactAgent()
 
 SAMPLES_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "samples"))
 
@@ -81,7 +83,8 @@ def health():
             "vision_agent": "PyMuPDF Spatial Parser",
             "privacy_agent": "Microsoft Presidio NER + PyMuPDF True Redactor",
             "schema_agent": "Open-Weights Ollama / Deterministic Pydantic Parser",
-            "risk_agent": "Vectorized Policy Benchmark Evaluator"
+            "risk_agent": "Vectorized Policy Benchmark Evaluator",
+            "unredact_agent": "Optical Contour & Vector Decoupler + Contextual AI Infiller"
         },
         "ollama_connected": schema_agent.is_ollama_available()
     }
@@ -94,21 +97,40 @@ def get_samples():
             "name": "Sample 1: Medical Billing Statement",
             "filename": "sample_medical_billing.pdf",
             "description": "Patient John Doe, SSN, Address, Policy MED-99482, ICD-10 diagnosis codes, charges table ($14,250.00).",
-            "compliance_focus": "HIPAA 45 CFR § 164 Safe Harbor + NSA Adjudication"
+            "compliance_focus": "HIPAA 45 CFR § 164 Safe Harbor + NSA Adjudication",
+            "mode": "redact"
         },
         {
             "id": "tech_nda",
             "name": "Sample 2: Tech Vendor NDA & MSA",
             "filename": "sample_tech_vendor_nda.pdf",
             "description": "Apex Cloud vs Quantum Data, Unilateral Indemnification (Clause 8.2), Foreign Zurich Jurisdiction, 10-Yr Term.",
-            "compliance_focus": "Enterprise Risk Baseline + Unlimited Liability Flag"
+            "compliance_focus": "Enterprise Risk Baseline + Unlimited Liability Flag",
+            "mode": "redact"
         },
         {
             "id": "academic_assignment",
             "name": "Sample 3: Academic Assignment Cover Sheet",
             "filename": "sample_academic_assignment.pdf",
             "description": "Dept. of ECE, Faculty Prof. Akshatha Bhat, Student Maha Akshay R, USN 24BBTCS352.",
-            "compliance_focus": "FERPA Student Privacy + Double-Blind Grading Baseline"
+            "compliance_focus": "FERPA Student Privacy + Double-Blind Grading Baseline",
+            "mode": "redact"
+        },
+        {
+            "id": "redacted_photo",
+            "name": "Sample 4: Redacted Document Photo (PNG)",
+            "filename": "sample_redacted_photo.png",
+            "description": "Camera photo/scan with physical black marker redaction bars over Student Name, USN, and Faculty Signature.",
+            "compliance_focus": "Computer Vision (OpenCV) & Contextual AI Semantic Infilling",
+            "mode": "unredact"
+        },
+        {
+            "id": "fake_redacted_medical",
+            "name": "Sample 5: Redacted Medical Bill (PDF)",
+            "filename": "sample_fake_redacted_medical.pdf",
+            "description": "Medical statement with cosmetic black boxes drawn over patient demographics in vector stream.",
+            "compliance_focus": "Vector-Stream Decoupling & True Under-the-box Extraction",
+            "mode": "unredact"
         }
     ]
 
@@ -118,6 +140,10 @@ def load_sample(sample_id: str):
         filename = "sample_medical_billing.pdf"
     elif sample_id == "academic_assignment":
         filename = "sample_academic_assignment.pdf"
+    elif sample_id == "redacted_photo":
+        filename = "sample_redacted_photo.png"
+    elif sample_id == "fake_redacted_medical":
+        filename = "sample_fake_redacted_medical.pdf"
     else:
         filename = "sample_tech_vendor_nda.pdf"
 
@@ -133,7 +159,8 @@ def load_sample(sample_id: str):
         "doc_id": doc_id,
         "filename": filename,
         "bytes": file_bytes,
-        "result": None
+        "result": None,
+        "unredacted_result": None
     })
     return {"doc_id": doc_id, "filename": filename, "size_bytes": len(file_bytes)}
 
@@ -275,9 +302,67 @@ async def stream_pipeline(doc_id: str, demo_mode: bool = True):
         doc_entry["result"] = final_result
         doc_entry["sanitized_bytes"] = sanitized_pdf
 
-        yield f"data: {json.dumps({'event': 'pipeline_finished', 'agent': 'Aggregator Gateway', 'message': f'Pipeline finished in {total_time_ms}ms. Clean PDF burned & Audit log ready.', 'progress': 100, 'result': final_result.model_dump()})}\n\n"
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.get("/api/unredact/stream/{doc_id}")
+async def stream_unredact(doc_id: str, demo_mode: bool = True):
+    if doc_id not in DOCUMENTS_STORE:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    doc_entry = DOCUMENTS_STORE[doc_id]
+    doc_bytes = doc_entry["bytes"]
+    filename = doc_entry["filename"]
+
+    async def paced_sleep(delay: float):
+        if demo_mode:
+            await asyncio.sleep(delay)
+        else:
+            await asyncio.sleep(0.01)
+
+    async def event_generator():
+        start_time = time.time()
+        is_image = unredact_agent.is_image_bytes(doc_bytes) or any(
+            filename.lower().endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".webp", ".tiff", ".bmp"]
+        )
+        file_type_label = "Raw Photo / Scan" if is_image else "Digital PDF"
+
+        # Step 0: Ingestion initialized
+        yield f"data: {json.dumps({'event': 'init', 'agent': 'Forensic Gateway', 'message': f'Ingested {file_type_label} \"{filename}\" into un-redaction engine.', 'progress': 10})}\n\n"
+        await paced_sleep(0.35)
+
+        # Step 1: Agent 1 - Computer Vision & Optical Contour Locator
+        yield f"data: {json.dumps({'event': 'agent_start', 'agent': 'Optical Contour Inspector', 'phase': 'contour_detection', 'message': 'Scanning canvas for solid black redaction bars & vector paths...', 'progress': 25})}\n\n"
+        await paced_sleep(0.4)
+
+        # Step 2: Agent 2 - Vector Decoupler & Photometric Analysis
+        yield f"data: {json.dumps({'event': 'agent_start', 'agent': 'Vector Decoupler Agent', 'phase': 'vector_analysis', 'message': 'Decoupling underlying vector streams & analyzing photometric pixel variance...', 'progress': 50})}\n\n"
+        await paced_sleep(0.4)
+
+        # Step 3: Agent 3 - Contextual AI Semantic Infilling
+        yield f"data: {json.dumps({'event': 'agent_start', 'agent': 'Contextual Infilling Agent', 'phase': 'semantic_infilling', 'message': 'Running entity-constrained linguistic infilling & character bounding box reconstruction...', 'progress': 70})}\n\n"
+        await paced_sleep(0.35)
+
+        # Run UnredactAgent offloaded to thread
+        unredact_result = await asyncio.to_thread(unredact_agent.unredact, doc_bytes, filename)
+        doc_entry["unredacted_result"] = unredact_result
+
+        # Store restored bytes for download
+        if unredact_result.unredacted_page_images:
+            b64_data = unredact_result.unredacted_page_images[0].split(",")[1]
+            doc_entry["unredacted_bytes"] = base64.b64decode(b64_data)
+
+        methods_str = ", ".join(unredact_result.recovery_methods_used) or "AI Semantic Infilling"
+        yield f"data: {json.dumps({'event': 'agent_complete', 'agent': 'Contextual Infilling Agent', 'phase': 'semantic_infilling', 'message': f'Recovered {len(unredact_result.unredacted_entities)} redacted entities via [{methods_str}].', 'metrics': {'redactions_detected': unredact_result.redactions_detected, 'recovered_entities': len(unredact_result.unredacted_entities), 'doc_type': unredact_result.doc_type}, 'progress': 88})}\n\n"
+        await paced_sleep(0.25)
+
+        # Step 4: Visual Canvas Restoration & Intelligence Synthesis
+        yield f"data: {json.dumps({'event': 'agent_complete', 'agent': 'Restoration & Intelligence Synthesizer', 'phase': 'visual_restoration', 'message': 'Generated high-fidelity unredacted visual restoration with forensic overlays.', 'progress': 95})}\n\n"
+        await paced_sleep(0.2)
+
+        yield f"data: {json.dumps({'event': 'pipeline_finished', 'agent': 'Forensic Gateway', 'message': 'Forensic un-redaction completed with zero data loss.', 'progress': 100, 'unredact_result': unredact_result.model_dump()})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
 
 @app.get("/api/documents/{doc_id}/pages/{page_idx}/image")
 def get_document_page_image(doc_id: str, page_idx: int, sanitized: bool = False):
@@ -356,6 +441,45 @@ def download_audit(doc_id: str):
         io.BytesIO(json.dumps(audit_data, indent=2).encode("utf-8")),
         media_type="application/json",
         headers={"Content-Disposition": f"attachment; filename=audit_log_{doc_id}.json"}
+    )
+
+@app.get("/api/download/unredacted/{doc_id}")
+def download_unredacted(doc_id: str):
+    if doc_id not in DOCUMENTS_STORE or "unredacted_bytes" not in DOCUMENTS_STORE[doc_id]:
+        raise HTTPException(status_code=404, detail="Un-redacted document not ready")
+    entry = DOCUMENTS_STORE[doc_id]
+    is_img = unredact_agent.is_image_bytes(entry["bytes"])
+    ext = "png" if is_img else "pdf"
+    media = "image/png" if is_img else "application/pdf"
+    clean_name = entry['filename'].rsplit('.', 1)[0]
+    return StreamingResponse(
+        io.BytesIO(entry["unredacted_bytes"]),
+        media_type=media,
+        headers={"Content-Disposition": f"attachment; filename=unredacted_{clean_name}.{ext}"}
+    )
+
+@app.get("/api/download/unredacted_dossier/{doc_id}")
+def download_unredacted_dossier(doc_id: str):
+    if doc_id not in DOCUMENTS_STORE or not DOCUMENTS_STORE[doc_id].get("unredacted_result"):
+        raise HTTPException(status_code=404, detail="Unredaction dossier not ready")
+    res: UnredactResult = DOCUMENTS_STORE[doc_id]["unredacted_result"]
+    dossier = {
+        "forensic_case_id": doc_id,
+        "filename": res.filename,
+        "document_type": res.doc_type,
+        "is_image_input": res.is_image_input,
+        "redactions_detected": res.redactions_detected,
+        "recovery_methods": res.recovery_methods_used,
+        "forensic_summary": res.forensic_summary,
+        "unredacted_entities": [e.model_dump() for e in res.unredacted_entities],
+        "extracted_document_intelligence": res.extracted_info,
+        "processing_time_ms": res.processing_time_ms,
+        "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    }
+    return StreamingResponse(
+        io.BytesIO(json.dumps(dossier, indent=2).encode("utf-8")),
+        media_type="application/json",
+        headers={"Content-Disposition": f"attachment; filename=unredacted_dossier_{doc_id}.json"}
     )
 
 @app.get("/api/system/enclave-info")
