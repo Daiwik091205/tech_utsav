@@ -92,14 +92,14 @@ export const AuditReport: React.FC<AuditReportProps> = ({
   };
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col h-full">
+    <div className="bg-card text-card-foreground border border-border rounded-lg p-5 shadow-sm flex flex-col h-full">
       {/* Top Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+      <div className="flex items-center justify-between pb-3 border-b border-border">
         <div>
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
             {isUnredactMode ? 'De-Redaction Forensic Dossier' : 'Structured Export & Audit'}
           </h3>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-muted-foreground">
             {isUnredactMode
               ? 'Optical & Vector Stream Reconstruction Intelligence'
               : 'Pydantic typing & differential privacy verification'}
@@ -107,15 +107,15 @@ export const AuditReport: React.FC<AuditReportProps> = ({
         </div>
 
         {/* Tab Switchers */}
-        <div className="flex items-center bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+        <div className="flex items-center bg-muted p-1 rounded-md border border-border text-xs">
           {isUnredactMode ? (
             <>
               <button
                 onClick={() => setActiveTab('recovered')}
                 className={`px-3 py-1 rounded-md font-medium transition-all cursor-pointer ${
                   activeTab === 'recovered'
-                    ? 'bg-cyan-950 text-cyan-300 border border-cyan-800 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-card text-foreground border border-border/60 shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Recovered Data ({unredactedEntities.length})
@@ -124,8 +124,8 @@ export const AuditReport: React.FC<AuditReportProps> = ({
                 onClick={() => setActiveTab('intelligence')}
                 className={`px-3 py-1 rounded-md font-medium transition-all cursor-pointer ${
                   activeTab === 'intelligence'
-                    ? 'bg-emerald-950 text-emerald-300 border border-emerald-800 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-card text-foreground border border-border/60 shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Extracted Info
@@ -134,8 +134,8 @@ export const AuditReport: React.FC<AuditReportProps> = ({
                 onClick={() => setActiveTab('schema')}
                 className={`px-3 py-1 rounded-md font-medium transition-all cursor-pointer ${
                   activeTab === 'schema'
-                    ? 'bg-indigo-950 text-indigo-300 border border-indigo-800 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-card text-foreground border border-border/60 shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Raw JSON
@@ -147,8 +147,8 @@ export const AuditReport: React.FC<AuditReportProps> = ({
                 onClick={() => setActiveTab('risks')}
                 className={`px-3 py-1 rounded-md font-medium transition-all cursor-pointer ${
                   activeTab === 'risks'
-                    ? 'bg-rose-950 text-rose-300 border border-rose-800 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-card text-foreground border border-border/60 shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Risk Cards ({riskFindings.length})
@@ -157,8 +157,8 @@ export const AuditReport: React.FC<AuditReportProps> = ({
                 onClick={() => setActiveTab('schema')}
                 className={`px-3 py-1 rounded-md font-medium transition-all cursor-pointer ${
                   activeTab === 'schema'
-                    ? 'bg-cyan-950 text-cyan-300 border border-cyan-800 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-card text-foreground border border-border/60 shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 JSON Schema
@@ -167,8 +167,8 @@ export const AuditReport: React.FC<AuditReportProps> = ({
                 onClick={() => setActiveTab('privacy')}
                 className={`px-3 py-1 rounded-md font-medium transition-all cursor-pointer ${
                   activeTab === 'privacy'
-                    ? 'bg-purple-950 text-purple-300 border border-purple-800 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-card text-foreground border border-border/60 shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Diff. Privacy
@@ -184,16 +184,16 @@ export const AuditReport: React.FC<AuditReportProps> = ({
         {isUnredactMode && activeTab === 'recovered' && (
           <div className="space-y-3">
             {forensicSummary && (
-              <div className="p-3 rounded-lg bg-cyan-950/40 border border-cyan-800/80 text-xs text-cyan-200 flex flex-col gap-1.5">
+              <div className="p-3 rounded-lg bg-muted/40 border border-border text-xs text-foreground flex flex-col gap-1.5">
                 <div className="flex items-center gap-2">
-                  <Search className="w-4 h-4 text-cyan-400 shrink-0" />
+                  <Search className="w-4 h-4 text-foreground shrink-0" />
                   <span className="font-semibold">{forensicSummary}</span>
                 </div>
                 {recoveryMethodsUsed.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-cyan-400 pt-1 border-t border-cyan-900/60">
-                    <span className="text-slate-400">Recovery Pipeline:</span>
+                  <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-muted-foreground pt-1 border-t border-border">
+                    <span>Recovery Pipeline:</span>
                     {recoveryMethodsUsed.map((m, i) => (
-                      <span key={i} className="px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-800">
+                      <span key={i} className="px-1.5 py-0.5 rounded bg-muted border border-border text-foreground">
                         {m}
                       </span>
                     ))}
@@ -203,50 +203,50 @@ export const AuditReport: React.FC<AuditReportProps> = ({
             )}
 
             {unredactedEntities.length === 0 ? (
-              <div className="text-center py-10 text-slate-500 text-xs">
+              <div className="text-center py-10 text-muted-foreground text-xs">
                 No redaction bars discovered in this document.
               </div>
             ) : (
               unredactedEntities.map((ent) => (
                 <div
                   key={ent.id}
-                  className="bg-slate-950/80 border border-cyan-900/60 rounded-xl p-4 shadow-sm hover:border-cyan-600 transition-all space-y-2.5"
+                  className="bg-muted/20 border border-border rounded-lg p-4 shadow-sm hover:border-foreground/20 transition-all space-y-2.5"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold">
+                    <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground border border-border font-semibold">
                       {ent.entity_type}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-muted text-foreground border border-border">
                         {(ent.confidence * 100).toFixed(1)}% Confidence
                       </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border">
                         {ent.method}
                       </span>
                     </div>
                   </div>
 
                   {/* Recovered Value Display */}
-                  <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+                  <div className="p-2.5 rounded-md bg-muted/60 border border-border flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Recovered String:</span>
-                      <span className="text-sm font-bold text-white font-mono">{ent.recovered_text}</span>
+                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">Recovered String:</span>
+                      <span className="text-sm font-bold text-foreground font-mono">{ent.recovered_text}</span>
                     </div>
-                    <span className="text-[10px] text-cyan-400 font-mono px-2 py-1 rounded bg-cyan-950/60 border border-cyan-800">
+                    <span className="text-[10px] text-primary-foreground font-mono px-2 py-0.5 rounded-md bg-primary">
                       Un-redacted
                     </span>
                   </div>
 
                   {ent.preceding_context && (
-                    <div className="text-[11px] text-slate-400">
-                      <span className="text-slate-500 font-semibold">Preceding Label: </span>
-                      <span className="text-slate-300">"{ent.preceding_context}"</span>
+                    <div className="text-[11px] text-muted-foreground">
+                      <span className="font-semibold text-foreground">Preceding Label: </span>
+                      <span>"{ent.preceding_context}"</span>
                     </div>
                   )}
 
                   {ent.risk_assessment && (
-                    <div className="text-[11px] text-slate-400 bg-slate-900/50 p-2 rounded border border-slate-800/80">
-                      <span className="text-amber-400 font-semibold">Forensic Analysis: </span>
+                    <div className="text-[11px] text-muted-foreground bg-muted/30 p-2 rounded-md border border-border">
+                      <span className="font-semibold text-foreground">Forensic Analysis: </span>
                       <span>{ent.risk_assessment}</span>
                     </div>
                   )}
@@ -259,20 +259,20 @@ export const AuditReport: React.FC<AuditReportProps> = ({
         {/* UNREDACT MODE: Tab 2 - Extracted Intelligence */}
         {isUnredactMode && activeTab === 'intelligence' && (
           <div className="space-y-3">
-            <div className="p-3 rounded-lg bg-emerald-950/40 border border-emerald-800/80 text-xs text-emerald-200 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div className="p-3 rounded-lg bg-muted/40 border border-border text-xs text-foreground flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
               <span>Complete structured intelligence compiled from visible fields and recovered data.</span>
             </div>
 
-            <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-4 divide-y divide-slate-800/80">
+            <div className="bg-muted/20 border border-border rounded-lg p-4 divide-y divide-border">
               {Object.entries(extractedSchema).map(([key, value]) => {
                 const isRecovered = typeof value === 'string' && value.includes('(RECOVERED)');
                 return (
                   <div key={key} className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
-                    <span className="text-slate-400 font-mono font-medium capitalize">
+                    <span className="text-muted-foreground font-mono font-medium capitalize">
                       {key.replace(/_/g, ' ')}:
                     </span>
-                    <span className={`font-semibold ${isRecovered ? 'text-cyan-300 font-mono' : 'text-slate-200'}`}>
+                    <span className={`font-semibold ${isRecovered ? 'text-foreground font-mono underline decoration-dotted' : 'text-foreground'}`}>
                       {String(value)}
                     </span>
                   </div>
@@ -286,43 +286,43 @@ export const AuditReport: React.FC<AuditReportProps> = ({
         {!isUnredactMode && activeTab === 'risks' && (
           <div className="space-y-3">
             {riskFindings.length === 0 ? (
-              <div className="text-center py-10 text-slate-500 text-xs">
+              <div className="text-center py-10 text-muted-foreground text-xs">
                 No policy deviations flagged.
               </div>
             ) : (
               riskFindings.map((risk) => (
                 <div
                   key={risk.clause_id}
-                  className="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 shadow-sm space-y-2 hover:border-slate-700 transition-all"
+                  className="bg-muted/20 border border-border rounded-lg p-3.5 shadow-sm space-y-2 hover:border-foreground/20 transition-all"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white tracking-wide truncate">
+                    <span className="text-xs font-semibold text-foreground tracking-tight truncate">
                       {risk.clause_title}
                     </span>
                     <span
-                      className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase shrink-0 ${
+                      className={`text-[10px] font-mono px-2 py-0.5 rounded-md font-bold uppercase shrink-0 ${
                         risk.severity === 'HIGH'
-                          ? 'bg-rose-950 text-rose-300 border border-rose-800'
-                          : 'bg-amber-950 text-amber-300 border border-amber-800'
+                          ? 'bg-destructive/15 text-destructive border border-destructive/30'
+                          : 'bg-muted text-muted-foreground border border-border'
                       }`}
                     >
                       {risk.severity} Risk
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400 leading-relaxed">{risk.risk_explanation}</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">{risk.risk_explanation}</p>
 
                   {/* Benchmark & Suggestion */}
-                  <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1.5">
-                    <span className="text-[10px] font-mono text-indigo-400 block font-semibold">
+                  <div className="p-2.5 rounded-md bg-muted/60 border border-border space-y-1.5">
+                    <span className="text-[10px] font-mono text-muted-foreground block font-semibold">
                       Suggested Redline Replacement:
                     </span>
-                    <p className="text-xs text-slate-200 font-mono leading-relaxed">{risk.suggested_revision}</p>
+                    <p className="text-xs text-foreground font-mono leading-relaxed">{risk.suggested_revision}</p>
                     <div className="flex justify-end pt-1">
                       <button
                         onClick={() => handleCopyRevision(risk.clause_id, risk.suggested_revision)}
-                        className="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer font-medium"
+                        className="text-[11px] text-foreground hover:opacity-80 flex items-center gap-1 cursor-pointer font-medium"
                       >
-                        {copiedRevision === risk.clause_id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                        {copiedRevision === risk.clause_id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
                         {copiedRevision === risk.clause_id ? 'Copied' : 'Copy Revision'}
                       </button>
                     </div>
@@ -338,12 +338,12 @@ export const AuditReport: React.FC<AuditReportProps> = ({
           <div className="relative">
             <button
               onClick={handleCopySchema}
-              className="absolute top-2 right-2 px-2.5 py-1 text-[11px] bg-slate-800 text-slate-300 hover:text-white rounded border border-slate-700 flex items-center gap-1 cursor-pointer z-10"
+              className="absolute top-2 right-2 px-2.5 py-1 text-[11px] bg-secondary text-secondary-foreground hover:bg-accent rounded-md border border-border flex items-center gap-1 cursor-pointer z-10"
             >
-              {copiedSchema ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+              {copiedSchema ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
               {copiedSchema ? 'Copied' : 'Copy JSON'}
             </button>
-            <pre className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs font-mono text-cyan-300 overflow-x-auto leading-relaxed max-h-[360px]">
+            <pre className="bg-muted/40 p-4 rounded-lg border border-border text-xs font-mono text-foreground overflow-x-auto leading-relaxed max-h-[360px]">
               {JSON.stringify(extractedSchema, null, 2)}
             </pre>
           </div>
@@ -352,23 +352,23 @@ export const AuditReport: React.FC<AuditReportProps> = ({
         {/* REDACT MODE: Tab - Differential Privacy */}
         {!isUnredactMode && activeTab === 'privacy' && differentialPrivacy && (
           <div className="space-y-3">
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <span className="text-xs text-slate-400">Differential Privacy Guarantee:</span>
-                <span className="text-xs font-mono text-purple-400 font-bold">&epsilon; = {differentialPrivacy.epsilon}</span>
+            <div className="bg-muted/20 p-4 rounded-lg border border-border space-y-2">
+              <div className="flex items-center justify-between border-b border-border pb-2">
+                <span className="text-xs text-muted-foreground">Differential Privacy Guarantee:</span>
+                <span className="text-xs font-mono text-foreground font-bold">&epsilon; = {differentialPrivacy.epsilon}</span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs pt-1">
                 <div>
-                  <span className="text-slate-500 block text-[10px]">Original Aggregate:</span>
-                  <span className="text-slate-200 font-mono font-bold">${differentialPrivacy.original_aggregate.toLocaleString()}</span>
+                  <span className="text-muted-foreground block text-[10px]">Original Aggregate:</span>
+                  <span className="text-foreground font-mono font-bold">${differentialPrivacy.original_aggregate.toLocaleString()}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block text-[10px]">Laplace Noise (&plusmn;):</span>
-                  <span className="text-purple-300 font-mono font-bold">${differentialPrivacy.laplace_noise}</span>
+                  <span className="text-muted-foreground block text-[10px]">Laplace Noise (&plusmn;):</span>
+                  <span className="text-foreground font-mono font-bold">${differentialPrivacy.laplace_noise}</span>
                 </div>
-                <div className="col-span-2 pt-2 border-t border-slate-800/80">
-                  <span className="text-slate-500 block text-[10px]">Privatized Export Value:</span>
-                  <span className="text-emerald-400 font-mono font-bold text-sm">
+                <div className="col-span-2 pt-2 border-t border-border">
+                  <span className="text-muted-foreground block text-[10px]">Privatized Export Value:</span>
+                  <span className="text-emerald-500 font-mono font-bold text-sm">
                     ${differentialPrivacy.privatized_aggregate.toLocaleString()}
                   </span>
                 </div>
@@ -379,11 +379,11 @@ export const AuditReport: React.FC<AuditReportProps> = ({
       </div>
 
       {/* Bottom Footer Actions */}
-      <div className="pt-3 border-t border-slate-800 flex flex-col gap-2">
-        <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
-          <span>Execution Time: <strong className="text-indigo-400">{processingTimeMs || 0} ms</strong></span>
+      <div className="pt-3 border-t border-border flex flex-col gap-2">
+        <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground">
+          <span>Execution Time: <strong className="text-foreground">{processingTimeMs || 0} ms</strong></span>
           <span className="truncate max-w-[200px]" title={auditHash}>
-            Case ID: <strong className="text-cyan-400">{docId || 'idle'}</strong>
+            Case ID: <strong className="text-foreground">{docId || 'idle'}</strong>
           </span>
         </div>
 
@@ -393,7 +393,7 @@ export const AuditReport: React.FC<AuditReportProps> = ({
               <button
                 type="button"
                 onClick={onDownloadRestoredDocument || onDownloadCleanPdf}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white transition-all shadow-md shadow-cyan-600/20 cursor-pointer"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-sm cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Restored File</span>
@@ -401,9 +401,9 @@ export const AuditReport: React.FC<AuditReportProps> = ({
               <button
                 type="button"
                 onClick={onDownloadForensicDossier || onDownloadAuditLog}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all cursor-pointer"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-accent border border-border transition-all cursor-pointer"
               >
-                <FileText className="w-3.5 h-3.5 text-cyan-400" />
+                <FileText className="w-3.5 h-3.5" />
                 <span>Forensic Dossier</span>
               </button>
             </>
@@ -412,7 +412,7 @@ export const AuditReport: React.FC<AuditReportProps> = ({
               <button
                 type="button"
                 onClick={onDownloadCleanPdf}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-sm cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Clean PDF</span>
@@ -420,9 +420,9 @@ export const AuditReport: React.FC<AuditReportProps> = ({
               <button
                 type="button"
                 onClick={onDownloadAuditLog}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all cursor-pointer"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-accent border border-border transition-all cursor-pointer"
               >
-                <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                <Lock className="w-3.5 h-3.5" />
                 <span>Audit JSON</span>
               </button>
             </>

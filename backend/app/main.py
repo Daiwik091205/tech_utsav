@@ -192,11 +192,11 @@ async def stream_pipeline(doc_id: str, demo_mode: bool = True):
     filename = doc_entry["filename"]
 
     async def paced_sleep(delay: float):
-        """Allows toggling between paced presentation demo (0.35s) and ultra-fast turbo mode (0.01s)."""
+        """Allows toggling between snappy demo (0.08s) and ultra-fast turbo mode (0.005s)."""
         if demo_mode:
-            await asyncio.sleep(delay)
+            await asyncio.sleep(min(delay, 0.08))
         else:
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.005)
 
     async def event_generator():
         start_time = time.time()
@@ -318,9 +318,9 @@ async def stream_unredact(doc_id: str, demo_mode: bool = True):
 
     async def paced_sleep(delay: float):
         if demo_mode:
-            await asyncio.sleep(delay)
+            await asyncio.sleep(min(delay, 0.08))
         else:
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.005)
 
     async def event_generator():
         start_time = time.time()

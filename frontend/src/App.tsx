@@ -3,7 +3,7 @@ import { Dropzone } from './components/Dropzone';
 import { LiveStreamLogs, type AgentLogItem } from './components/LiveStreamLogs';
 import { DualPdfViewer } from './components/DualPdfViewer';
 import { AuditReport } from './components/AuditReport';
-import { Shield, HelpCircle, Terminal, Search } from 'lucide-react';
+import { Shield, HelpCircle, Terminal, Search, Sun, Moon } from 'lucide-react';
 
 export default function App() {
   const [pipelineMode, setPipelineMode] = useState<'redact' | 'unredact'>('redact');
@@ -41,7 +41,26 @@ export default function App() {
 
   // Expo Script Guide Modal
   const [showExpoGuide, setShowExpoGuide] = useState<boolean>(false);
-  const [isTurboMode, setIsTurboMode] = useState<boolean>(false);
+  const [isTurboMode, setIsTurboMode] = useState<boolean>(true);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme_preference');
+      if (saved === 'light' || saved === 'dark') return saved;
+    }
+    return 'dark';
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    try {
+      localStorage.setItem('theme_preference', theme);
+    } catch (e) {}
+  }, [theme]);
 
   // Desktop Enclave & Security States
   const [enclaveToken, setEnclaveToken] = useState<string>('');
@@ -338,32 +357,24 @@ export default function App() {
   }, [enclaveToken]);
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col font-sans selection:bg-indigo-600 selection:text-white">
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-foreground selection:text-background">
       {/* Top Navigation Bar */}
-      <header className="border-b border-slate-800 bg-[#0d1322]/90 backdrop-blur-md sticky top-0 z-40 px-6 py-3.5">
+      <header className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-40 px-6 py-3">
         <div className="max-w-[1700px] mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-lg transition-all ${
-              pipelineMode === 'unredact'
-                ? 'bg-gradient-to-tr from-cyan-600 to-emerald-500 shadow-cyan-600/30'
-                : 'bg-gradient-to-tr from-indigo-600 to-cyan-500 shadow-indigo-600/30'
-            }`}>
-              {pipelineMode === 'unredact' ? <Search className="w-5 h-5 text-white" /> : <Shield className="w-5 h-5 text-white" />}
+            <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold shadow-sm shrink-0">
+              {pipelineMode === 'unredact' ? <Search className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-base font-bold text-white tracking-wide">
+                <h1 className="text-sm font-semibold text-foreground tracking-tight">
                   Enterprise Multi-Agent Document Intelligence & Redaction Engine
                 </h1>
-                <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border ${
-                  pipelineMode === 'unredact'
-                    ? 'bg-cyan-950 text-cyan-300 border-cyan-700'
-                    : 'bg-indigo-950 text-indigo-300 border-indigo-700'
-                }`}>
+                <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md border border-border bg-muted text-muted-foreground">
                   {pipelineMode === 'unredact' ? 'DE-REDACTION FORENSICS' : 'HARDWARE BURN-IN'}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-muted-foreground">
                 {pipelineMode === 'unredact'
                   ? 'Optical Contour Localization • Vector Decoupling • Native Vision OCR • Contextual AI Semantic Infilling'
                   : 'Deterministic DAG Pipeline • Microsoft Presidio NER • True PyMuPDF Pixel Burn-In • Differential Privacy'}
@@ -372,33 +383,65 @@ export default function App() {
           </div>
 
           {/* System Status Badges */}
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800 text-xs font-mono text-emerald-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Zero Data Egress: Air-Gapped</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/60 border border-border text-xs font-mono text-foreground">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Air-Gapped</span>
             </div>
 
             {processingTimeMs > 0 && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-950/70 border border-indigo-700 text-xs font-mono text-indigo-300">
-                <span className="text-amber-400 font-bold">⚡ {processingTimeMs}ms</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/60 border border-border text-xs font-mono text-foreground font-medium">
+                <span>⚡ {processingTimeMs}ms</span>
               </div>
             )}
 
             {isDesktopApp && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-950/70 border border-sky-700 text-xs font-mono text-sky-300">
-                <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/60 border border-border text-xs font-mono text-foreground">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
                 <span>
-                  {(window as any).electronAPI?.isMac ? 'macOS Enclave: Process Isolated' : 'Windows Enclave: Process Isolated'}
+                  {(window as any).electronAPI?.isMac ? 'macOS Enclave' : 'Windows Enclave'}
                 </span>
               </div>
             )}
 
+            {/* Theme Toggle (Light / Dark segmented switch) */}
+            <div className="flex items-center bg-muted p-0.5 rounded-lg border border-border">
+              <button
+                type="button"
+                onClick={() => setTheme('light')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                  theme === 'light'
+                    ? 'bg-card text-foreground shadow-sm border border-border/80 font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Switch to Light Mode"
+                aria-label="Light Mode"
+              >
+                <Sun className="w-3.5 h-3.5 text-amber-500" />
+                <span>Light</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme('dark')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                  theme === 'dark'
+                    ? 'bg-card text-foreground shadow-sm border border-border/80 font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Switch to Dark Mode"
+                aria-label="Dark Mode"
+              >
+                <Moon className="w-3.5 h-3.5 text-foreground" />
+                <span>Dark</span>
+              </button>
+            </div>
+
             <button
               onClick={() => setShowExpoGuide(true)}
-              className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md bg-secondary hover:bg-accent border border-border text-secondary-foreground transition-colors cursor-pointer"
             >
-              <HelpCircle className="w-3.5 h-3.5 text-indigo-400" />
-              <span>3-Min Expo Script</span>
+              <HelpCircle className="w-3.5 h-3.5 text-muted-foreground" />
+              <span>3-Min Guide</span>
             </button>
           </div>
         </div>
@@ -406,21 +449,21 @@ export default function App() {
 
       {/* Native Desktop Save Notification Banner */}
       {savedNotification && (
-        <div className="bg-emerald-950/90 border-b border-emerald-700 px-6 py-2.5 flex items-center justify-between text-xs text-emerald-200">
+        <div className="bg-muted/90 border-b border-border px-6 py-2.5 flex items-center justify-between text-xs text-foreground">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-emerald-400">✓ File Saved Successfully:</span>
-            <span className="font-mono text-emerald-300 truncate max-w-xl">{savedNotification.filePath}</span>
+            <span className="font-semibold text-emerald-500">✓ File Saved Successfully:</span>
+            <span className="font-mono text-muted-foreground truncate max-w-xl">{savedNotification.filePath}</span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => (window as any).electronAPI?.showItemInFolder?.(savedNotification.filePath)}
-              className="px-2.5 py-1 bg-emerald-800 hover:bg-emerald-700 text-white font-semibold rounded text-[11px] transition cursor-pointer"
+              className="px-2.5 py-1 bg-primary text-primary-foreground font-medium rounded-md text-[11px] transition-opacity hover:opacity-90 cursor-pointer"
             >
-              {(window as any).electronAPI?.isMac ? 'Reveal in Finder' : 'Reveal in File Explorer'}
+              {(window as any).electronAPI?.isMac ? 'Reveal in Finder' : 'Reveal in Explorer'}
             </button>
             <button
               onClick={() => setSavedNotification(null)}
-              className="p-1 hover:text-white text-emerald-400 cursor-pointer"
+              className="p-1 hover:text-foreground text-muted-foreground cursor-pointer"
             >
               ✕
             </button>
@@ -499,30 +542,30 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-[#0a0e18] px-6 py-2.5 text-center text-xs text-slate-500">
-        Enterprise Document Intelligence Engine • Hardware Redaction • Forensic Un-Redaction • Presidio NER • OpenCV Optical Infilling • Air-gapped
+      <footer className="border-t border-border bg-card px-6 py-2.5 text-center text-xs text-muted-foreground font-mono">
+        Enterprise Document Intelligence Engine • Hardware Redaction • Forensic Un-Redaction • Presidio NER • Air-gapped
       </footer>
 
       {/* 3-Minute Expo Demo Script Modal */}
       {showExpoGuide && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl overflow-y-auto max-h-[85vh]">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card text-card-foreground border border-border rounded-lg max-w-2xl w-full p-6 shadow-xl overflow-y-auto max-h-[85vh]">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
-                <Terminal className="w-5 h-5 text-indigo-400" />
-                <h3 className="text-base font-bold text-white">Expo Booth Demo Blueprint (3-Minute Script)</h3>
+                <Terminal className="w-4 h-4 text-foreground" />
+                <h3 className="text-sm font-semibold text-foreground">Expo Booth Demo Blueprint (3-Minute Script)</h3>
               </div>
               <button
                 onClick={() => setShowExpoGuide(false)}
-                className="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:text-white cursor-pointer"
+                className="text-xs px-2.5 py-1 rounded-md bg-secondary text-secondary-foreground hover:bg-accent border border-border cursor-pointer font-medium"
               >
                 Close
               </button>
             </div>
 
-            <div className="mt-4 space-y-4 text-xs text-slate-300 leading-relaxed font-sans">
-              <div className="p-3 rounded-lg bg-indigo-950/40 border border-indigo-800/60">
-                <span className="font-bold text-indigo-300 uppercase tracking-wide block mb-1">
+            <div className="mt-4 space-y-3 text-xs text-muted-foreground leading-relaxed font-sans">
+              <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                <span className="font-semibold text-foreground uppercase tracking-wide block mb-1">
                   1. Privacy & Hard Redaction Mode
                 </span>
                 <p>
@@ -530,14 +573,14 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="p-3 rounded-lg bg-cyan-950/40 border border-cyan-800/60">
-                <span className="font-bold text-cyan-300 uppercase tracking-wide block mb-1">
-                  2. Forensic De-Redaction & Recovery Mode (NEW!)
+              <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                <span className="font-semibold text-foreground uppercase tracking-wide block mb-1">
+                  2. Forensic De-Redaction & Recovery Mode
                 </span>
                 <p>
                   "Switch to Forensic Un-Redact and select Sample 4 (Redacted Photo) or Sample 5 (Redacted PDF).
-                  <br/>• For photos/scans: OpenCV detects physical black marker bars, Apple Vision OCR extracts surrounding layout, and contextual AI infills the hidden names, USN, and signatures!
-                  <br/>• For PDFs: Decouples vector streams to catch cosmetic 'fake' black rectangle redactions, extracting hidden text underneath with 100% precision."
+                  <br />• For photos/scans: OpenCV detects physical black marker bars, Apple Vision OCR extracts surrounding layout, and contextual AI infills the hidden names, USN, and signatures!
+                  <br />• For PDFs: Decouples vector streams to catch cosmetic 'fake' black rectangle redactions, extracting hidden text underneath with 100% precision."
                 </p>
               </div>
             </div>

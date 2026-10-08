@@ -180,7 +180,7 @@ function createMainWindow() {
     height: 940,
     minWidth: 1100,
     minHeight: 720,
-    backgroundColor: '#070b14',
+    backgroundColor: '#000000',
     title: 'Enterprise Multi-Agent Document Intelligence (Air-Gapped Enclave)',
     icon: fs.existsSync(iconPath) ? iconPath : undefined,
     show: false, // reveal after ready-to-show to prevent white flash
