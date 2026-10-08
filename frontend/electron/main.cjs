@@ -5,6 +5,41 @@ const crypto = require('crypto');
 const { spawn } = require('child_process');
 const http = require('http');
 
+// Prevent any unhandled spawn or node exceptions from crashing with raw modal dialogs
+process.on('uncaughtException', (err) => {
+  console.error('[Enclave Desktop] Caught uncaught exception:', err);
+});
+
+// Enrich system PATH so GUI apps launched from macOS Finder / Dock / Spotlight find Python
+if (process.platform === 'darwin') {
+  const macBinPaths = [
+    '/opt/homebrew/bin',
+    '/opt/homebrew/sbin',
+    '/Library/Frameworks/Python.framework/Versions/3.14/bin',
+    '/Library/Frameworks/Python.framework/Versions/3.12/bin',
+    '/Library/Frameworks/Python.framework/Versions/3.11/bin',
+    '/Library/Frameworks/Python.framework/Versions/Current/bin',
+    '/usr/local/bin',
+    '/usr/bin',
+    '/bin',
+    '/usr/sbin',
+    '/sbin',
+  ];
+  const currentPath = process.env.PATH || '';
+  process.env.PATH = `${macBinPaths.filter(p => fs.existsSync(p)).join(':')}:${currentPath}`;
+} else if (process.platform === 'win32') {
+  const winPaths = [
+    'C:\\Python312',
+    'C:\\Python312\\Scripts',
+    'C:\\Python311',
+    'C:\\Python311\\Scripts',
+    path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Python', 'Python312'),
+    path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Python', 'Python311'),
+  ];
+  const currentPath = process.env.PATH || '';
+  process.env.PATH = `${winPaths.filter(p => fs.existsSync(p)).join(';')};${currentPath}`;
+}
+
 // Generate 256-bit cryptographically secure enclave session token
 const ENCLAVE_SESSION_TOKEN = crypto.randomBytes(32).toString('hex');
 const BACKEND_PORT = process.env.PORT || 8000;
@@ -15,118 +50,204 @@ let mainWindow = null;
 let pythonProcess = null;
 let isQuitting = false;
 
+// Resolve backend working directory across packaged app and workspace
+function resolveBackendDirectory() {
+  const candidates = [
+    path.join(process.resourcesPath || '', 'backend'),
+    path.resolve(__dirname, '..', '..', 'backend'),
+    path.resolve(__dirname, '..', 'backend'),
+    '/Volumes/maha/tech_utsav/backend',
+  ];
+  for (const c of candidates) {
+    if (c && fs.existsSync(path.join(c, 'app', 'main.py'))) {
+      return c;
+    }
+  }
+  return path.resolve(__dirname, '..', '..', 'backend');
+}
+
 // Resolve Python runtime executable across Windows, macOS, and Linux
-function resolvePythonExecutable() {
+function resolvePythonExecutable(backendDir) {
   const isWin = process.platform === 'win32';
   const rootDir = path.resolve(__dirname, '..', '..');
 
   // 1. Packaged standalone backend executable (PyInstaller)
-  const packagedExePath = isWin
-    ? path.join(rootDir, 'backend', 'dist', 'document_engine_backend.exe')
-    : path.join(rootDir, 'backend', 'dist', 'document_engine_backend');
-  if (fs.existsSync(packagedExePath)) {
-    return { cmd: packagedExePath, isExecutable: true, args: [] };
+  const packagedExeCandidates = [
+    path.join(backendDir, 'dist', isWin ? 'document_engine_backend.exe' : 'document_engine_backend'),
+    path.join(rootDir, 'backend', 'dist', isWin ? 'document_engine_backend.exe' : 'document_engine_backend'),
+    path.join(process.resourcesPath || '', isWin ? 'document_engine_backend.exe' : 'document_engine_backend'),
+  ];
+  for (const p of packagedExeCandidates) {
+    if (fs.existsSync(p)) {
+      return { cmd: p, isExecutable: true, args: [] };
+    }
   }
 
-  // 2. Python Virtual Environment in workspace
-  const venvPythonPath = isWin
-    ? path.join(rootDir, 'backend', '.venv', 'Scripts', 'python.exe')
-    : path.join(rootDir, 'backend', '.venv', 'bin', 'python');
-  if (fs.existsSync(venvPythonPath)) {
-    return { cmd: venvPythonPath, isExecutable: false, args: ['-m', 'uvicorn', 'app.main:app', '--host', BACKEND_HOST, '--port', String(BACKEND_PORT)] };
+  // 2. Python Virtual Environment in workspace or known location
+  const venvPythonCandidates = [
+    path.join(backendDir, '.venv', isWin ? 'Scripts' : 'bin', isWin ? 'python.exe' : 'python'),
+    path.join(backendDir, '.venv', isWin ? 'Scripts' : 'bin', isWin ? 'python.exe' : 'python3'),
+    '/Volumes/maha/tech_utsav/backend/.venv/bin/python',
+    '/Volumes/maha/tech_utsav/backend/.venv/bin/python3',
+  ];
+  for (const v of venvPythonCandidates) {
+    if (fs.existsSync(v)) {
+      return {
+        cmd: v,
+        isExecutable: false,
+        args: ['-m', 'uvicorn', 'app.main:app', '--host', BACKEND_HOST, '--port', String(BACKEND_PORT)],
+      };
+    }
   }
 
-  // 3. Fallback to system Python
-  const fallbackCmd = isWin ? 'python' : 'python3';
-  return { cmd: fallbackCmd, isExecutable: false, args: ['-m', 'uvicorn', 'app.main:app', '--host', BACKEND_HOST, '--port', String(BACKEND_PORT)] };
-}
+  // 3. Fallback to existing system Python binary with absolute path
+  const sysPythonCandidates = isWin
+    ? [
+        path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Python', 'Python312', 'python.exe'),
+        path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Python', 'Python311', 'python.exe'),
+        'C:\\Python312\\python.exe',
+        'C:\\Python311\\python.exe',
+        'python.exe',
+        'python',
+      ]
+    : [
+        '/opt/homebrew/bin/python3.12',
+        '/opt/homebrew/bin/python3',
+        '/Library/Frameworks/Python.framework/Versions/3.14/bin/python3',
+        '/Library/Frameworks/Python.framework/Versions/3.12/bin/python3',
+        '/Library/Frameworks/Python.framework/Versions/Current/bin/python3',
+        '/usr/local/bin/python3',
+        '/usr/bin/python3',
+        'python3',
+      ];
 
-// Spawn and supervise Python backend process
-function startBackendProcess() {
-  const rootDir = path.resolve(__dirname, '..', '..');
-  const backendDir = path.join(rootDir, 'backend');
-  const pythonConfig = resolvePythonExecutable();
-
-  console.log(`[Enclave Desktop] Launching Backend Engine via: ${pythonConfig.cmd}`);
-
-  const env = {
-    ...process.env,
-    DOCUMENT_ENGINE_SECRET_TOKEN: ENCLAVE_SESSION_TOKEN,
-    PYTHONUNBUFFERED: '1',
-    PORT: String(BACKEND_PORT),
-  };
-
-  try {
-    pythonProcess = spawn(pythonConfig.cmd, pythonConfig.args, {
-      cwd: backendDir,
-      env: env,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      detached: false,
-      windowsHide: true,
-    });
-
-    pythonProcess.stdout.on('data', (data) => {
-      const msg = data.toString().trim();
-      if (msg) console.log(`[Backend Stdout] ${msg}`);
-    });
-
-    pythonProcess.stderr.on('data', (data) => {
-      const msg = data.toString().trim();
-      if (msg) console.error(`[Backend Stderr] ${msg}`);
-    });
-
-    pythonProcess.on('exit', (code, signal) => {
-      console.log(`[Backend Process] Exited with code ${code}, signal ${signal}`);
-      pythonProcess = null;
-      if (!isQuitting && mainWindow && !mainWindow.isDestroyed()) {
-        dialog.showErrorBox(
-          'Engine Offline',
-          `The air-gapped Document Intelligence backend process exited unexpectedly (code ${code}).`
-        );
+  for (const p of sysPythonCandidates) {
+    if (p.startsWith('/') || p.includes('\\')) {
+      if (fs.existsSync(p)) {
+        return {
+          cmd: p,
+          isExecutable: false,
+          args: ['-m', 'uvicorn', 'app.main:app', '--host', BACKEND_HOST, '--port', String(BACKEND_PORT)],
+        };
       }
-    });
-  } catch (err) {
-    console.error('[Enclave Desktop] Failed to spawn backend process:', err);
+    } else {
+      return {
+        cmd: p,
+        isExecutable: false,
+        args: ['-m', 'uvicorn', 'app.main:app', '--host', BACKEND_HOST, '--port', String(BACKEND_PORT)],
+      };
+    }
   }
+
+  const fallbackCmd = isWin ? 'python' : 'python3';
+  return {
+    cmd: fallbackCmd,
+    isExecutable: false,
+    args: ['-m', 'uvicorn', 'app.main:app', '--host', BACKEND_HOST, '--port', String(BACKEND_PORT)],
+  };
 }
 
-// Poll backend health endpoint until online
-function waitForBackend(callback, retries = 40, delay = 500) {
+// Check if backend is already online on localhost
+function checkBackendHealth(callback) {
   const req = http.request(
     {
       hostname: BACKEND_HOST,
       port: BACKEND_PORT,
       path: '/api/health',
       method: 'GET',
-      headers: {
-        'x-session-token': ENCLAVE_SESSION_TOKEN,
-      },
-      timeout: 2000,
+      timeout: 800,
     },
     (res) => {
-      if (res.statusCode === 200) {
-        console.log('[Enclave Desktop] Air-gapped backend engine is verified HEALTHY.');
-        callback(true);
-      } else {
-        retry();
-      }
+      callback(res.statusCode === 200);
     }
   );
-
-  req.on('error', () => {
-    retry();
+  req.on('error', () => callback(false));
+  req.on('timeout', () => {
+    req.destroy();
+    callback(false);
   });
-
   req.end();
+}
 
-  function retry() {
+// Spawn and supervise Python backend process
+function startBackendProcess(onComplete) {
+  // Check if a backend instance is already running
+  checkBackendHealth((alreadyRunning) => {
+    if (alreadyRunning) {
+      console.log(`[Enclave Desktop] Backend Engine already active on port ${BACKEND_PORT}. Reusing instance.`);
+      if (typeof onComplete === 'function') onComplete(true);
+      return;
+    }
+
+    const backendDir = resolveBackendDirectory();
+    const pythonConfig = resolvePythonExecutable(backendDir);
+
+    console.log(`[Enclave Desktop] Launching Backend Engine from [${backendDir}] via: ${pythonConfig.cmd}`);
+
+    const env = {
+      ...process.env,
+      DOCUMENT_ENGINE_SECRET_TOKEN: ENCLAVE_SESSION_TOKEN,
+      PYTHONUNBUFFERED: '1',
+      PORT: String(BACKEND_PORT),
+    };
+
+    try {
+      pythonProcess = spawn(pythonConfig.cmd, pythonConfig.args, {
+        cwd: backendDir,
+        env: env,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        detached: false,
+        windowsHide: true,
+      });
+
+      // Catch spawn errors (such as ENOENT) gracefully without crashing main process
+      pythonProcess.on('error', (err) => {
+        console.warn('[Enclave Desktop] Could not spawn local Python process:', err.message);
+        pythonProcess = null;
+      });
+
+      if (pythonProcess.stdout) {
+        pythonProcess.stdout.on('data', (data) => {
+          const msg = data.toString().trim();
+          if (msg) console.log(`[Backend Stdout] ${msg}`);
+        });
+      }
+
+      if (pythonProcess.stderr) {
+        pythonProcess.stderr.on('data', (data) => {
+          const msg = data.toString().trim();
+          if (msg) console.error(`[Backend Stderr] ${msg}`);
+        });
+      }
+
+      pythonProcess.on('exit', (code, signal) => {
+        console.log(`[Backend Process] Exited with code ${code}, signal ${signal}`);
+        pythonProcess = null;
+      });
+
+      if (typeof onComplete === 'function') onComplete(false);
+    } catch (err) {
+      console.warn('[Enclave Desktop] Handled exception starting backend:', err);
+      if (typeof onComplete === 'function') onComplete(false);
+    }
+  });
+}
+
+// Poll backend health endpoint until online
+function waitForBackend(callback, retries = 30, delay = 300) {
+  checkBackendHealth((isHealthy) => {
+    if (isHealthy) {
+      console.log('[Enclave Desktop] Air-gapped backend engine is verified HEALTHY.');
+      callback(true);
+      return;
+    }
     if (retries > 0) {
       setTimeout(() => waitForBackend(callback, retries - 1, delay), delay);
     } else {
-      console.warn('[Enclave Desktop] Backend startup health check timed out. Proceeding anyway.');
+      console.warn('[Enclave Desktop] Backend startup health check timed out. Proceeding to display interface.');
       callback(false);
     }
-  }
+  });
 }
 
 // Shutdown backend safely
