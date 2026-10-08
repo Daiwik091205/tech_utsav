@@ -26,6 +26,7 @@
     "appId": "com.enterprise.documentintelligence",
     "productName": "Enterprise Document Intelligence",
     "copyright": "Copyright © 2026 Enterprise Security Enclave",
+    "afterPack": "electron/afterPack.cjs",
     "directories": {
       "output": "release"
     },
