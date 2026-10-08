@@ -1,8 +1,8 @@
 # Enterprise Multi-Agent Document Intelligence & Redaction Engine
 
-[![Direct Download macOS](https://img.shields.io/badge/Download-macOS%20DMG%20(Apple%20Silicon)-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-arm64.dmg)
-[![Direct Download Windows](https://img.shields.io/badge/Download-Windows%20(64--bit%20ZIP)-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-Windows-x64.zip)
-[![Direct Download macOS Intel](https://img.shields.io/badge/Download-macOS%20DMG%20(Intel)-4B5563?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-x64.dmg)
+[![Direct Download macOS](https://img.shields.io/badge/Download-macOS%20DMG%20(Apple%20Silicon)-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-arm64.dmg)
+[![Direct Download Windows](https://img.shields.io/badge/Download-Windows%20(64--bit%20ZIP)-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-Windows-x64.zip)
+[![Direct Download macOS Intel](https://img.shields.io/badge/Download-macOS%20DMG%20(Intel)-4B5563?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-x64.dmg)
 [![Release v1.0.0](https://img.shields.io/badge/Release-v1.0.0-22c55e?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Daiwik091205/tech_utsav/releases/tag/v1.0.0)
 [![Enclave](https://img.shields.io/badge/Security-Air--Gapped%20Enclave-blue?style=for-the-badge)](README.md)
 [![HIPAA/GDPR Ready](https://img.shields.io/badge/Compliance-HIPAA%20%7C%20GDPR-purple?style=for-the-badge)](README.md)
@@ -17,13 +17,11 @@ An air-gapped, privacy-preserving document pipeline designed for high-stakes ent
 
 | Operating System | Target Architecture | Distribution Format | ⚡ Direct 1-Click Download | Size | Installation / Quick Start |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 🍏 **macOS** | **Apple Silicon** (M1/M2/M3/M4) | **Apple Disk Image (`.dmg`)** | [⬇️ **Download macOS DMG (Apple Silicon)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-arm64.dmg) | ~131 MB | Double-click `.dmg`, drag to `/Applications` |
-| 🍏 **macOS** | **Apple Silicon** (M1/M2/M3/M4) | **Portable Archive (`.zip`)** | [⬇️ **Download macOS ZIP (Apple Silicon)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-arm64.zip) | ~131 MB | Unzip and launch `Enterprise Document Intelligence.app` |
-| 🍏 **macOS** | **Intel** (x86_64) | **Apple Disk Image (`.dmg`)** | [⬇️ **Download macOS DMG (Intel)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-x64.dmg) | ~134 MB | Double-click `.dmg`, drag to `/Applications` |
-| 🍏 **macOS** | **Intel** (x86_64) | **Portable Archive (`.zip`)** | [⬇️ **Download macOS ZIP (Intel)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-x64.zip) | ~134 MB | Unzip and launch `Enterprise Document Intelligence.app` |
-| 🪟 **Windows** | **Windows 10 / 11** (64-bit) | **Full Enclave Archive (`.zip`)** | [⬇️ **Download Windows Enclave Package (.zip)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-Windows-x64.zip) | ~154 MB | Extract and double-click `run_windows_app.bat` or `Enterprise Document Intelligence.exe` |
-| 🪟 **Windows** | **Windows 10 / 11** (64-bit) | **Portable Single Executable (`.exe`)** | [⬇️ **Download Portable Executable (.exe)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise-Document-Intelligence-1.0.0-Portable-Windows-x64.exe) | Single `.exe` | Standalone executable (zero installation required) |
-| 🪟 **Windows** | **Windows 10 / 11** (64-bit) | **NSIS Desktop Setup (`.exe`)** | [⬇️ **Download Desktop Setup Installer (.exe)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise-Document-Intelligence-Setup-1.0.0.exe) | Installer | Desktop shortcut & Start Menu installer |
+| 🍏 **macOS** | **Apple Silicon** (M1/M2/M3/M4) | **Apple Disk Image (`.dmg`)** | [⬇️ **Download macOS DMG (Apple Silicon)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-arm64.dmg) | ~131 MB | Double-click `.dmg`, drag to `/Applications` |
+| 🍏 **macOS** | **Apple Silicon** (M1/M2/M3/M4) | **Portable Archive (`.zip`)** | [⬇️ **Download macOS ZIP (Apple Silicon)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-arm64.zip) | ~131 MB | Unzip and launch `Enterprise Document Intelligence.app` |
+| 🍏 **macOS** | **Intel** (x86_64) | **Apple Disk Image (`.dmg`)** | [⬇️ **Download macOS DMG (Intel)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-x64.dmg) | ~134 MB | Double-click `.dmg`, drag to `/Applications` |
+| 🍏 **macOS** | **Intel** (x86_64) | **Portable Archive (`.zip`)** | [⬇️ **Download macOS ZIP (Intel)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-x64.zip) | ~134 MB | Unzip and launch `Enterprise Document Intelligence.app` |
+| 🪟 **Windows** | **Windows 10 / 11** (64-bit) | **Full Enclave Package (`.zip`)** | [⬇️ **Download Windows Enclave Package (.zip)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-Windows-x64.zip) | ~154 MB | Extract and double-click `run_windows_app.bat` or `Enterprise Document Intelligence.exe` |
 
 ### 💻 Direct Terminal Downloads (cURL & PowerShell)
 
@@ -31,15 +29,15 @@ Download directly to your machine without opening a browser:
 
 ```bash
 # macOS (Apple Silicon M-Series):
-curl -fLO "https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-arm64.dmg"
+curl -fLO "https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-arm64.dmg"
 
 # macOS (Intel):
-curl -fLO "https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-x64.dmg"
+curl -fLO "https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-x64.dmg"
 ```
 
 ```powershell
 # Windows PowerShell (64-bit Package):
-Invoke-WebRequest -Uri "https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-Windows-x64.zip" -OutFile "Enterprise-Document-Intelligence-Windows.zip"
+Invoke-WebRequest -Uri "https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-Windows-x64.zip" -OutFile "Enterprise-Document-Intelligence-Windows.zip"
 Expand-Archive -Path "Enterprise-Document-Intelligence-Windows.zip" -DestinationPath "Enterprise-Document-Intelligence"
 ```
 
@@ -190,10 +188,8 @@ tech_utsav/
 
 For maximum enterprise security, this system runs as an **air-gapped Windows Desktop Application Enclave**, isolating sensitive document memory from web browser extensions, localhost port scanners, and external network egress.
 
-> 📦 **Direct 1-Click Windows Downloads (No Release Page Navigation):**  
-> - [⬇️ **Download Windows Enclave Package (.zip — 154 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-Windows-x64.zip) — Pre-packaged full enclave  
-> - [⬇️ **Download Portable Single Executable (.exe)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise-Document-Intelligence-1.0.0-Portable-Windows-x64.exe) — Zero-install single executable  
-> - [⬇️ **Download Windows Desktop Setup Installer (.exe)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise-Document-Intelligence-Setup-1.0.0.exe) — Full NSIS installer  
+> 📦 **Direct 1-Click Windows Download (No Release Page Navigation):**  
+> - [⬇️ **Download Windows Enclave Package (.zip — 154 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-Windows-x64.zip) — Complete self-contained enclave (extract and run)  
 
 See detailed specifications in [WINDOWS_APPLICATION.md](file:///Volumes/maha/tech_utsav/WINDOWS_APPLICATION.md).
 
@@ -227,10 +223,10 @@ Generates:
 For macOS (Apple Silicon M1/M2/M3/M4 & Intel), the engine runs as an **air-gapped macOS Desktop Application Enclave** with Apple Vision OCR acceleration and AppKit native panels.
 
 > 🍏 **Direct 1-Click macOS Downloads (No Release Page Navigation):**  
-> - [⬇️ **Download Apple Silicon DMG (.dmg — 131 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-arm64.dmg) — Recommended for M1, M2, M3, M4 Macs  
-> - [⬇️ **Download Apple Silicon ZIP (.zip — 131 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-arm64.zip) — Portable standalone app  
-> - [⬇️ **Download Intel Mac DMG (.dmg — 134 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-x64.dmg) — For Intel-based Macs  
-> - [⬇️ **Download Intel Mac ZIP (.zip — 134 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-x64.zip) — Portable standalone app  
+> - [⬇️ **Download Apple Silicon DMG (.dmg — 131 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-arm64.dmg) — Recommended for M1, M2, M3, M4 Macs  
+> - [⬇️ **Download Apple Silicon ZIP (.zip — 131 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-arm64.zip) — Portable standalone app  
+> - [⬇️ **Download Intel Mac DMG (.dmg — 134 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-x64.dmg) — For Intel-based Macs  
+> - [⬇️ **Download Intel Mac ZIP (.zip — 134 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-x64.zip) — Portable standalone app  
 
 See detailed specifications in [MACOS_APPLICATION.md](file:///Volumes/maha/tech_utsav/MACOS_APPLICATION.md).
 

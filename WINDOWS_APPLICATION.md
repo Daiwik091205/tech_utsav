@@ -37,13 +37,11 @@ The repository includes a turnkey suite of Windows desktop components:
 
 ### Method 0: Direct 1-Click Downloads (No Releases Page Hunting)
 Download pre-compiled binaries directly from the latest GitHub release:
-- 🪟 [**Download Windows Enclave Package (.zip — 154 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-Windows-x64.zip) — Pre-packaged full enclave (extract and run)
-- 🪟 [**Download Portable Single Executable (.exe)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise-Document-Intelligence-1.0.0-Portable-Windows-x64.exe) — Zero-install single executable
-- 🪟 [**Download Windows Desktop Setup Installer (.exe)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise-Document-Intelligence-Setup-1.0.0.exe) — Desktop & Start Menu installer
+- 🪟 [**Download Windows Enclave Package (.zip — 154 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-Windows-x64.zip) — Pre-packaged full enclave (extract and run)
 
 Or download directly via PowerShell:
 ```powershell
-Invoke-WebRequest -Uri "https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-Windows-x64.zip" -OutFile "Enterprise-Document-Intelligence-Windows.zip"
+Invoke-WebRequest -Uri "https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-Windows-x64.zip" -OutFile "Enterprise-Document-Intelligence-Windows.zip"
 Expand-Archive -Path "Enterprise-Document-Intelligence-Windows.zip" -DestinationPath "Enterprise-Document-Intelligence"
 ```
 

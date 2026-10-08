@@ -35,18 +35,18 @@ The repository includes a turnkey suite of macOS desktop components:
 
 ### Method 0: Direct 1-Click Downloads (No Releases Page Hunting)
 Download pre-compiled binaries directly from the latest GitHub release:
-- 🍏 [**Download Apple Silicon DMG (.dmg — 131 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-arm64.dmg) — For Apple Silicon M1, M2, M3, M4 Macs
-- 🍏 [**Download Apple Silicon ZIP (.zip — 131 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-arm64.zip) — Standalone portable app
-- 🍏 [**Download Intel Mac DMG (.dmg — 134 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-x64.dmg) — For Intel-based Macs
-- 🍏 [**Download Intel Mac ZIP (.zip — 134 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-x64.zip) — Standalone portable app
+- 🍏 [**Download Apple Silicon DMG (.dmg — 131 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-arm64.dmg) — For Apple Silicon M1, M2, M3, M4 Macs
+- 🍏 [**Download Apple Silicon ZIP (.zip — 131 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-arm64.zip) — Standalone portable app
+- 🍏 [**Download Intel Mac DMG (.dmg — 134 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-x64.dmg) — For Intel-based Macs
+- 🍏 [**Download Intel Mac ZIP (.zip — 134 MB)**](https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-x64.zip) — Standalone portable app
 
 Or download directly via Terminal:
 ```bash
 # Apple Silicon (M-Series):
-curl -fLO "https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-arm64.dmg"
+curl -fLO "https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-arm64.dmg"
 
 # Intel:
-curl -fLO "https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise%20Document%20Intelligence-1.0.0-macOS-x64.dmg"
+curl -fLO "https://github.com/Daiwik091205/tech_utsav/releases/latest/download/Enterprise.Document.Intelligence-1.0.0-macOS-x64.dmg"
 ```
 
 ---
